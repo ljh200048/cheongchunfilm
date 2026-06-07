@@ -87,7 +87,7 @@ export default function Header({
           >
             <Film className="w-5 h-5 text-amber-500 transition-transform duration-500 group-hover:rotate-12" />
             <span className="font-display text-lg font-bold tracking-widest text-[#fafaf9] group-hover:text-amber-400 transition-colors">
-              cheongchun_film
+              청춘필름
             </span>
           </div>
 

@@ -22,11 +22,11 @@ export default function Footer({ onTabChange }: FooterProps) {
             <div className="flex items-center gap-2 cursor-pointer" onClick={() => onTabChange('Home')}>
               <Film className="w-5 h-5 text-amber-500" />
               <span className="font-display text-base font-bold tracking-widest text-[#fafaf9]">
-                cheongchun_film
+                청춘필름
               </span>
             </div>
             <p className="text-stone-500 leading-relaxed max-w-xs text-[11px]">
-              cheongchun_film은 이미지, 포스터, 릴스 숏폼, 예고편, 영화 연출 기반 전체 영상 편집을 책임지는 감성 콘텐츠 크리에이티브 스튜디오입니다.
+              청춘필름은 이미지, 포스터, 릴스 숏폼, 예고편, 영화 연출 기반 전체 영상 편집을 책임지는 감성 콘텐츠 크리에이티브 스튜디오입니다.
             </p>
           </div>
 
