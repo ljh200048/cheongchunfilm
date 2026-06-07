@@ -48,10 +48,10 @@ export default function Schedule() {
             // CHEONGCHUN CALENDAR
           </span>
           <h2 className="font-display font-black text-2xl sm:text-4xl text-stone-100">
-            청춘필름 제작 일정표
+            cheongchun_film 제작 일정표
           </h2>
           <p className="font-sans text-xs sm:text-sm text-stone-400 leading-relaxed">
-            청춘필름의 제작 일정과 업로드 일정을 확인해보세요. <br />
+            cheongchun_film의 제작 일정과 업로드 일정을 확인해보세요. <br />
             감성을 만드는 새로운 콘텐츠, 촬영 스케줄, 서포터즈 모집 소식을 실시간으로 공유합니다.
           </p>
         </div>

@@ -80,7 +80,7 @@ export default function App() {
     } else if (role === 'admin') {
       const demoAdmin: User = {
         id: 'u_admin',
-        name: '청춘필름 관리자',
+        name: 'cheongchun_film 관리자',
         email: 'admin@cheongchun.com',
         phone: '010-1234-5678',
         role: 'admin'
@@ -123,7 +123,7 @@ export default function App() {
                 
                 <div className="space-y-2 max-w-lg mx-auto">
                   <p className="text-xs text-stone-400 leading-relaxed">
-                    지금 촬영을 한 장만 남겨두기 무언가 아쉽다면, 청춘필름에 영화 같은 영상과 감각적인 고해상도 디자인을 기획 문의하세요.
+                    지금 촬영을 한 장만 남겨두기 무언가 아쉽다면, cheongchun_film에 영화 같은 영상과 감각적인 고해상도 디자인을 기획 문의하세요.
                   </p>
                   <p className="text-[11.5px] text-amber-500/80 font-semibold uppercase tracking-wider">
                     가장 알맞은 감독과 크루를 즉각 매칭해 드립니다.
@@ -147,7 +147,7 @@ export default function App() {
             <section className="bg-[#0c0a09] py-16 border-b border-[#1c1917] text-center space-y-6">
               <div className="max-w-2xl mx-auto px-4 space-y-3">
                 <span className="font-mono text-[10px] text-amber-500 tracking-widest font-bold uppercase">// SUPPORTERS TEAM BANNER</span>
-                <h3 className="font-display font-black text-xl sm:text-3xl">청춘필름 서포터즈 Crew 3기 모집</h3>
+                <h3 className="font-display font-black text-xl sm:text-3xl">cheongchun_film 서포터즈 Crew 2기 모집</h3>
                 <p className="text-xs text-stone-500 leading-relaxed">
                   인스타그램 릴스 작가부터 오프라인 스태프, 시각 포스터 디자이너까지 우리들 주변의 따스한 이야기를 수집할 크리에이터를 기다립니다.
                 </p>

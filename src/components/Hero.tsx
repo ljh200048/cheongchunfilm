@@ -29,11 +29,11 @@ export default function Hero({ onTabChange }: HeroProps) {
 
         {/* Sub-text containing the exact copwrite */}
         <p className="font-sans text-xs sm:text-sm text-stone-400 max-w-2xl leading-relaxed mb-10">
-          평범한 사진 한 장도, 짧은 영상 한 컷도 청춘필름을 만나면 마음을 요동치게 하는 하나의 장면이 됩니다. 
+          평범한 사진 한 장도, 짧은 영상 한 컷도 cheongchun_film을 만나면 마음을 요동치게 하는 하나의 장면이 됩니다. 
           이미지 제작부터 포스터 디자인, 릴스/숏폼, 특별한 모임 예고편, 전문 전체 편집까지 필요한 순간에 맞춘 
           감성 가득한 콘텐츠를 제작해 드립니다. 
           <br className="hidden sm:inline" />
-          지금 남기고 싶은 청춘의 장면이 있다면, 청춘필름이 가장 시네마틱하게 만들어드릴게요.
+          지금 남기고 싶은 청춘의 장면이 있다면, cheongchun_film이 가장 시네마틱하게 만들어드릴게요.
         </p>
 
         {/* Action Buttons with the explicit text recommendation */}
@@ -65,7 +65,7 @@ export default function Hero({ onTabChange }: HeroProps) {
             <span className="text-stone-500 text-[11px] mt-1 tracking-widest font-medium uppercase">고객 감동 리뷰</span>
           </div>
           <div className="flex flex-col items-center">
-            <span className="font-display text-2xl sm:text-3xl font-bold text-stone-100">3기</span>
+            <span className="font-display text-2xl sm:text-3xl font-bold text-stone-100">2기</span>
             <span className="text-stone-500 text-[11px] mt-1 tracking-widest font-medium uppercase">서포터즈 모집 예정</span>
           </div>
         </div>

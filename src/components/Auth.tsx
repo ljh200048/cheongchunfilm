@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User } from '../types';
 import { getStoredUsers, saveUser } from '../utils/storage';
 import { X, Mail, Lock, User as UserIcon, Phone, Shield } from 'lucide-react';
@@ -17,7 +17,17 @@ export default function Auth({ isOpen, type, onClose, onAuthSuccess }: AuthProps
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   
+  const [wantsToBeAdmin, setWantsToBeAdmin] = useState(false);
+  const [adminCode, setAdminCode] = useState('');
+  
   const [errorStatus, setErrorStatus] = useState<string | null>(null);
+
+  // Reset admin check states whenever open state or type shifts
+  useEffect(() => {
+    setWantsToBeAdmin(false);
+    setAdminCode('');
+    setErrorStatus(null);
+  }, [authType, isOpen]);
 
   if (!isOpen) return null;
 
@@ -41,12 +51,23 @@ export default function Auth({ isOpen, type, onClose, onAuthSuccess }: AuthProps
         return;
       }
 
+      const isTryingToBeAdmin = wantsToBeAdmin || email.toLowerCase().includes('admin');
+      let finalRole: 'user' | 'admin' = 'user';
+
+      if (isTryingToBeAdmin) {
+        if (adminCode !== 'cheongchun7777') {
+          setErrorStatus('관리자 등급으로 가입하려면 올바른 [관리자 가입 보안용 비밀 코드]를 기입하셔야 합니다.');
+          return;
+        }
+        finalRole = 'admin';
+      }
+
       const newUser: User = {
         id: 'u_' + Date.now(),
         name: name || '고객',
         email: email,
         phone: phone || '010-0000-0000',
-        role: email.includes('admin') ? 'admin' : 'user'
+        role: finalRole
       };
 
       saveUser(newUser);
@@ -58,7 +79,7 @@ export default function Auth({ isOpen, type, onClose, onAuthSuccess }: AuthProps
   const handleQuickDemoFill = (role: 'user' | 'admin') => {
     if (role === 'admin') {
       setEmail('admin@cheongchun.com');
-      setName('청춘필름 관리자');
+      setName('cheongchun_film 관리자');
       setPhone('010-1234-5678');
       setAuthType('login');
     } else {
@@ -197,6 +218,42 @@ export default function Auth({ isOpen, type, onClose, onAuthSuccess }: AuthProps
             </div>
           </div>
 
+          {authType === 'register' && (
+            <div className="space-y-3 pt-2 pb-1 border-t border-[#1c1917] mt-3">
+              <label className="flex items-center gap-2 cursor-pointer text-stone-400 hover:text-stone-200 transition">
+                <input 
+                  type="checkbox"
+                  checked={wantsToBeAdmin}
+                  onChange={(e) => setWantsToBeAdmin(e.target.checked)}
+                  className="rounded border-[#292524] bg-[#12100f] text-amber-500 focus:ring-0 cursor-pointer"
+                />
+                <span className="text-[11px] font-semibold flex items-center gap-1 select-none">
+                  <Shield className="w-3.5 h-3.5 text-amber-500" />
+                  관리자 계정으로 가입 신청하기
+                </span>
+              </label>
+
+              {(wantsToBeAdmin || email.toLowerCase().includes('admin')) && (
+                <div className="space-y-1 pl-4.5 animate-fadeIn">
+                  <label className="text-amber-400 font-bold text-[10px] uppercase tracking-wider block">
+                    관리자 가입 승인 비밀 코드
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    placeholder="비밀 코드 기입"
+                    value={adminCode}
+                    onChange={(e) => setAdminCode(e.target.value)}
+                    className="w-full bg-[#12100f] border border-amber-500/30 rounded-lg px-3 py-2 text-stone-200 focus:outline-none focus:border-amber-500 transition-colors placeholder:text-stone-750 font-mono text-center text-xs"
+                  />
+                  <span className="text-[9.5px] text-stone-500 block leading-tight">
+                    * 비인가 무단 가입 방지를 위해 본사 발급 코드가 필요합니다.
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+
           <button
             type="submit"
             className="w-full py-3 bg-amber-500 hover:bg-amber-600 text-stone-900 font-bold rounded-lg transition-colors cursor-pointer text-xs uppercase shadow-md"
@@ -208,7 +265,7 @@ export default function Auth({ isOpen, type, onClose, onAuthSuccess }: AuthProps
         <div className="mt-5 pt-4 border-t border-[#1c1917] text-center text-[11px] text-stone-500">
           {authType === 'login' ? (
             <p>
-              아직 청춘필름 계정이 없으신가요?{' '}
+              아직 cheongchun_film 계정이 없으신가요?{' '}
               <button 
                 onClick={() => setAuthType('register')}
                 className="text-amber-500 hover:underline font-semibold cursor-pointer"

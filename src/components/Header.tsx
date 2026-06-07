@@ -83,16 +83,11 @@ export default function Header({
           {/* Logo Brand with CheongChun film requested pair */}
           <div 
             onClick={() => handleTabClick('Home')} 
-            className="flex flex-col cursor-pointer group"
+            className="flex items-center gap-2 cursor-pointer group"
           >
-            <div className="flex items-center gap-2">
-              <Film className="w-5 h-5 text-amber-500 transition-transform duration-500 group-hover:rotate-12" />
-              <span className="font-display text-lg font-bold tracking-widest text-[#fafaf9] group-hover:text-amber-400 transition-colors">
-                cheongchun_film
-              </span>
-            </div>
-            <span className="text-[10px] tracking-[0.25em] text-[#a8a29e] uppercase -mt-0.5 font-medium ml-7 pl-0.5">
-              청춘필름
+            <Film className="w-5 h-5 text-amber-500 transition-transform duration-500 group-hover:rotate-12" />
+            <span className="font-display text-lg font-bold tracking-widest text-[#fafaf9] group-hover:text-amber-400 transition-colors">
+              cheongchun_film
             </span>
           </div>
 

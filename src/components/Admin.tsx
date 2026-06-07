@@ -91,7 +91,7 @@ export default function Admin() {
     setSchTitle('');
     setSchDescription('');
     setSchedules(getStoredSchedules());
-    alert('새 세부 일정이 청춘필름 달력에 등록 배포되었습니다!');
+    alert('새 세부 일정이 cheongchun_film 달력에 등록 배포되었습니다!');
   };
 
   // Delete Milestone
@@ -116,7 +116,7 @@ export default function Admin() {
       title: portTitle,
       description: portDesc,
       imageUrl: bannerUrl,
-      client: portClient || '청춘필름 자체기획',
+      client: portClient || 'cheongchun_film 자체기획',
       date: portDate || '2026.06'
     };
 
@@ -156,7 +156,7 @@ export default function Admin() {
                 <ShieldAlert className="w-5 h-5" />
               </span>
               <h2 className="font-display font-black text-xl sm:text-2xl tracking-wide">
-                청춘필름 HQ 관리 본부
+                cheongchun_film HQ 관리 본부
               </h2>
             </div>
             <p className="text-xs text-[#a8a29e]">

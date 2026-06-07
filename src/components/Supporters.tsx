@@ -36,7 +36,7 @@ export default function Supporters({ currentUser }: SupportersProps) {
   ];
 
   const activities = [
-    '청춘필름 시공 프로젝트 기획 및 메인 촬영 현장 지원',
+    'cheongchun_film 시공 프로젝트 기획 및 메인 촬영 현장 지원',
     '연합 소모임, 청년 포스터 미장센 레퍼런스 수집 및 배포',
     '스케치 릴스 및 메가폰 쇼츠 영상 가공 참여',
     '서포터즈 공식 정기 피드백 기획 대담회 및 파티 참가'
@@ -73,7 +73,7 @@ export default function Supporters({ currentUser }: SupportersProps) {
             Supporters Recruiting
           </div>
           <h2 className="font-display font-black text-2xl sm:text-4xl text-stone-100 uppercase">
-            청춘필름 서포터즈 모집
+            cheongchun_film 서포터즈 모집
           </h2>
           <p className="font-sans text-xs sm:text-sm text-stone-400 leading-relaxed">
             청춘의 빛나는 한 장면을 함께 기록할 열정 넘치는 영 크리에이터를 찾습니다. <br />
@@ -133,7 +133,7 @@ export default function Supporters({ currentUser }: SupportersProps) {
                 <h3 className="font-display font-bold text-base">서포터즈 특별 지원 신청 완료!</h3>
                 <p className="text-[11px] text-stone-400 leading-normal">
                   지원해주신 수치와 동기들은 고이 검토하여 개별 연락 및 기수 대담에 초대하기 위한 문자를 보내드립니다. <br />
-                  청춘필름의 열정 어린 여정에 용기내어 손 내밀어주셔서 대단히 고맙습니다.
+                  cheongchun_film의 열정 어린 여정에 용기내어 손 내밀어주셔서 대단히 고맙습니다.
                 </p>
               </div>
               <button 

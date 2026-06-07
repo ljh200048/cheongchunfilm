@@ -13,7 +13,7 @@ const STORAGE_KEYS = {
 const DEFAULT_USERS: User[] = [
   {
     id: 'u_admin',
-    name: '청춘필름 관리자',
+    name: 'cheongchun_film 관리자',
     email: 'admin@cheongchun.com',
     phone: '010-1234-5678',
     role: 'admin'
@@ -76,7 +76,7 @@ const DEFAULT_SUPPORTERS: SupporterApplicant[] = [
     phone: '010-5555-6666',
     email: 'seoyeon@daum.net',
     field: '릴스 · 숏폼 제작',
-    reason: '인스타그램에서 숏폼 편집을 독학하며 사람들의 하트를 받는 즐거움을 배웠습니다. 청춘필름만의 독특한 필름 빈티지 톤앤매너로 많은 이들의 찬란한 일상을 엮어내고 싶어 지원합니다.',
+    reason: '인스타그램에서 숏폼 편집을 독학하며 사람들의 하트를 받는 즐거움을 배웠습니다. cheongchun_film만의 독특한 필름 빈티지 톤앤매너로 많은 이들의 찬란한 일상을 엮어내고 싶어 지원합니다.',
     createdAt: '2026-06-07T05:20:00Z'
   },
   {
@@ -85,7 +85,7 @@ const DEFAULT_SUPPORTERS: SupporterApplicant[] = [
     phone: '010-7777-8888',
     email: 'dohyun_p@naver.com',
     field: '포스터 및 이미지 디자인',
-    reason: '시각디자인을 전공 중이며, 아날로그 인화 기법과 필름 영화 포토 카드를 수집하는 취미가 있습니다. 감성을 자극하는 색감과 기발한 레이아웃으로 청춘필름의 신뢰도를 빛내겠습니다.',
+    reason: '시각디자인을 전공 중이며, 아날로그 인화 기법과 필름 영화 포토 카드를 수집하는 취미가 있습니다. 감성을 자극하는 색감과 기발한 레이아웃으로 cheongchun_film의 신뢰도를 빛내겠습니다.',
     createdAt: '2026-06-07T11:40:00Z'
   }
 ];

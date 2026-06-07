@@ -125,7 +125,7 @@ export default function Services({ onTabChange }: ServicesProps) {
               <p className="text-[11px] text-stone-500 leading-relaxed">
                 "좋은 순간은 수식처럼 금방 지나가지만 잘 기록된 콘텐츠는 평생 오래도록 기억 속에 남습니다."
                 <br className="mt-1 block" />
-                선약된 스케줄이 다 차기 전에, 상담 예약을 등록해 보세요. 청춘필름 대표팀이 직접 연락드리겠습니다.
+                선약된 스케줄이 다 차기 전에, 상담 예약을 등록해 보세요. 크루 대표팀이 직접 연락드리겠습니다.
               </p>
             </div>
             <button

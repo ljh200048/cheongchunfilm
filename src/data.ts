@@ -86,7 +86,7 @@ export const INITIAL_SCHEDULES: ScheduleItem[] = [
     id: 's5',
     date: '2026-06-20',
     title: '서포터즈 모집 시작',
-    description: '청춘필름 3기 영 크리에이터 서포터즈 모집 지원서 오픈 및 접수 시작'
+    description: 'cheongchun_film 2기 영 크리에이터 서포터즈 모집 지원서 오픈 및 접수 시작'
   },
   {
     id: 's6',

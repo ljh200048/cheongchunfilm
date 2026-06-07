@@ -146,7 +146,7 @@ export default function MyPage({ currentUser, onTabChange }: MyPageProps) {
               <Film className="w-8 h-8 text-stone-600 mx-auto animate-pulse" />
               <div className="space-y-1">
                 <p className="text-stone-400 text-xs">아직 제출 완료하신 감성 제작 예약 건이 없습니다.</p>
-                <p className="text-stone-600 text-[11px]">지금 낭만의 날짜를 정하고 청춘필름에 의뢰서를 노크해 보세요.</p>
+                <p className="text-stone-600 text-[11px]">지금 낭만의 날짜를 정하고 cheongchun_film에 의뢰서를 노크해 보세요.</p>
               </div>
               <button 
                 onClick={() => onTabChange('Reservation')}

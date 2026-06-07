@@ -1,6 +1,6 @@
 {
-  "name": "청춘필름 | cheongchun_film",
-  "description": "당신의 순간을 영화처럼 기록하는 청춘 콘텐츠 제작소",
+  "name": "cheongchun_film",
+  "description": "당신의 순간을 영화처럼 기록하는 콘텐츠 제작소",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

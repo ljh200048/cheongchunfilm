@@ -85,7 +85,7 @@ export default function Reservation({ currentUser, onOpenAuth, onTabChange }: Re
                 제작 예약 신청이 완료되었습니다!
               </h3>
               <p className="text-xs text-stone-400 leading-relaxed">
-                신청하신 예약 정보가 청춘필름 중앙 관리 시스템에 접수되었습니다. <br />
+                신청하신 예약 정보가 cheongchun_film 중앙 관리 시스템에 접수되었습니다. <br />
                 담당 프로듀서가 연락처(<span className="text-amber-400 font-mono">{currentUser?.phone}</span>)나 메일로 가이드안과 일정 조율 시안을 곧 송부해 드립니다.
               </p>
             </div>

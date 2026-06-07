@@ -26,7 +26,7 @@ export default function Footer({ onTabChange }: FooterProps) {
               </span>
             </div>
             <p className="text-stone-500 leading-relaxed max-w-xs text-[11px]">
-              청춘필름은 이미지, 포스터, 릴스 숏폼, 예고편, 영화 연출 기반 전체 영상 편집을 책임지는 감성 콘텐츠 크리에이티브 스튜디오입니다.
+              cheongchun_film은 이미지, 포스터, 릴스 숏폼, 예고편, 영화 연출 기반 전체 영상 편집을 책임지는 감성 콘텐츠 크리에이티브 스튜디오입니다.
             </p>
           </div>
 
@@ -44,7 +44,7 @@ export default function Footer({ onTabChange }: FooterProps) {
 
           {/* Col 3: Quick Tabs Links */}
           <div className="space-y-3">
-            <h4 className="font-display font-semibold text-stone-200 tracking-wider">청춘필름 바로가기</h4>
+            <h4 className="font-display font-semibold text-stone-200 tracking-wider">cheongchun_film 바로가기</h4>
             <ul className="grid grid-cols-2 gap-2 text-[11px] text-stone-500">
               <li className="hover:text-[#fff] transition cursor-pointer" onClick={() => onTabChange('Home')}>홈 (Home)</li>
               <li className="hover:text-[#fff] transition cursor-pointer" onClick={() => onTabChange('Service')}>서비스 (Service)</li>

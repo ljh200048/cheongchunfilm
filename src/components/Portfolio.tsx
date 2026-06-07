@@ -46,7 +46,7 @@ export default function Portfolio({ onTabChange }: PortfolioProps) {
             말보다 먼저 보여드릴게요
           </h2>
           <p className="font-sans text-xs sm:text-sm text-stone-400">
-            청춘필름이 다듬고 완성한 세련된 장면들을 확인해 보세요. <br />
+            cheongchun_film이 다듬고 완성한 세련된 장면들을 확인해 보세요. <br />
             모든 이미지는 클릭 시 자세한 제작 동기와 요청 명세를 감상할 수 있습니다.
           </p>
         </div>
