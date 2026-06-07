@@ -13,17 +13,10 @@ const STORAGE_KEYS = {
 const DEFAULT_USERS: User[] = [
   {
     id: 'u_admin',
-    name: 'cheongchun_film 관리자',
-    email: 'admin@cheongchun.com',
-    phone: '010-1234-5678',
-    role: 'admin'
-  },
-  {
-    id: 'u_tester',
-    name: '이청춘',
+    name: '청춘필름 관리자',
     email: 'lch200048@gmail.com',
     phone: '010-8765-4321',
-    role: 'user'
+    role: 'admin'
   }
 ];
 
@@ -56,8 +49,8 @@ const DEFAULT_RESERVATIONS: Reservation[] = [
   },
   {
     id: 'res_3',
-    userId: 'u_tester',
-    userName: '이청춘',
+    userId: 'u_admin',
+    userName: '청춘필름 관리자',
     userPhone: '010-8765-4321',
     userEmail: 'lch200048@gmail.com',
     serviceType: '릴스 숏폼',
@@ -92,11 +85,23 @@ const DEFAULT_SUPPORTERS: SupporterApplicant[] = [
 
 export function getStoredUser(): User | null {
   const user = localStorage.getItem(STORAGE_KEYS.CURRENT_USER);
-  return user ? JSON.parse(user) : null;
+  if (!user) return null;
+  const parsedUser: User = JSON.parse(user);
+  if (parsedUser.email.toLowerCase() === 'lch200048@gmail.com') {
+    parsedUser.role = 'admin';
+  } else {
+    parsedUser.role = 'user';
+  }
+  return parsedUser;
 }
 
 export function setStoredUser(user: User | null) {
   if (user) {
+    if (user.email.toLowerCase() === 'lch200048@gmail.com') {
+      user.role = 'admin';
+    } else {
+      user.role = 'user';
+    }
     localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(user));
   } else {
     localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
@@ -105,16 +110,36 @@ export function setStoredUser(user: User | null) {
 
 export function getStoredUsers(): User[] {
   const users = localStorage.getItem(STORAGE_KEYS.USERS);
+  let parsedUsers: User[] = [];
   if (!users) {
-    localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(DEFAULT_USERS));
-    return DEFAULT_USERS;
+    parsedUsers = DEFAULT_USERS;
+  } else {
+    parsedUsers = JSON.parse(users);
   }
-  return JSON.parse(users);
+
+  // Ensure lch200048@gmail.com is ALWAYS admin, others user unless matched
+  const updatedUsers = parsedUsers.map(u => {
+    const isLch = u.email.toLowerCase() === 'lch200048@gmail.com';
+    return {
+      ...u,
+      role: (isLch ? 'admin' : 'user') as 'admin' | 'user'
+    };
+  });
+
+  if (!users) {
+    localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(updatedUsers));
+  }
+  return updatedUsers;
 }
 
 export function saveUser(user: User) {
+  if (user.email.toLowerCase() === 'lch200048@gmail.com') {
+    user.role = 'admin';
+  } else {
+    user.role = 'user';
+  }
   const users = getStoredUsers();
-  const existingIndex = users.findIndex(u => u.id === user.id || u.email === user.email);
+  const existingIndex = users.findIndex(u => u.id === user.id || u.email.toLowerCase() === user.email.toLowerCase());
   if (existingIndex > -1) {
     users[existingIndex] = user;
   } else {

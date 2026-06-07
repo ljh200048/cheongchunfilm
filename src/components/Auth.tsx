@@ -17,15 +17,10 @@ export default function Auth({ isOpen, type, onClose, onAuthSuccess }: AuthProps
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   
-  const [wantsToBeAdmin, setWantsToBeAdmin] = useState(false);
-  const [adminCode, setAdminCode] = useState('');
-  
   const [errorStatus, setErrorStatus] = useState<string | null>(null);
 
-  // Reset admin check states whenever open state or type shifts
+  // Reset check states whenever open state or type shifts
   useEffect(() => {
-    setWantsToBeAdmin(false);
-    setAdminCode('');
     setErrorStatus(null);
   }, [authType, isOpen]);
 
@@ -37,34 +32,26 @@ export default function Auth({ isOpen, type, onClose, onAuthSuccess }: AuthProps
     const users = getStoredUsers();
 
     if (authType === 'login') {
-      const found = users.find(u => u.email === email);
+      const found = users.find(u => u.email.toLowerCase() === email.toLowerCase());
       if (found) {
         onAuthSuccess(found);
         onClose();
       } else {
-        setErrorStatus('등록되지 않은 이메일 주소입니다. [테스터 퀵스위치] 혹은 간편 회원가입을 이용해주세요!');
+        setErrorStatus('등록되지 않은 이메일 주소입니다. 회원가입이 안 되어있다면 가입을 먼저 진행해 주세요!');
       }
     } else {
       // Register
-      if (users.some(u => u.email === email)) {
+      if (users.some(u => u.email.toLowerCase() === email.toLowerCase())) {
         setErrorStatus('이미 등록된 동일 이메일이 존재합니다.');
         return;
       }
 
-      const isTryingToBeAdmin = wantsToBeAdmin || email.toLowerCase().includes('admin');
-      let finalRole: 'user' | 'admin' = 'user';
-
-      if (isTryingToBeAdmin) {
-        if (adminCode !== 'cheongchun7777') {
-          setErrorStatus('관리자 등급으로 가입하려면 올바른 [관리자 가입 보안용 비밀 코드]를 기입하셔야 합니다.');
-          return;
-        }
-        finalRole = 'admin';
-      }
+      const isLch = email.toLowerCase() === 'lch200048@gmail.com';
+      const finalRole: 'user' | 'admin' = isLch ? 'admin' : 'user';
 
       const newUser: User = {
         id: 'u_' + Date.now(),
-        name: name || '고객',
+        name: name || (isLch ? '청춘필름 관리자' : '고객'),
         email: email,
         phone: phone || '010-0000-0000',
         role: finalRole
@@ -73,20 +60,6 @@ export default function Auth({ isOpen, type, onClose, onAuthSuccess }: AuthProps
       saveUser(newUser);
       onAuthSuccess(newUser);
       onClose();
-    }
-  };
-
-  const handleQuickDemoFill = (role: 'user' | 'admin') => {
-    if (role === 'admin') {
-      setEmail('admin@cheongchun.com');
-      setName('cheongchun_film 관리자');
-      setPhone('010-1234-5678');
-      setAuthType('login');
-    } else {
-      setEmail('lch200048@gmail.com');
-      setName('이청춘');
-      setPhone('010-8765-4321');
-      setAuthType('login');
     }
   };
 
@@ -110,32 +83,8 @@ export default function Auth({ isOpen, type, onClose, onAuthSuccess }: AuthProps
           <p className="text-[11px] text-stone-400 leading-normal">
             {authType === 'login' 
               ? '가입하신 이메일로 간단히 세션을 가동하세요.' 
-              : '감성 콘텐츠 대여와 실시간 관동 예약의 혜택을 다 잡으세요.'}
+              : '청춘필름의 시네마틱 한 장면에 당신을 대입해 보세요.'}
           </p>
-        </div>
-
-        {/* Quick Demo Assist */}
-        <div className="bg-[#12100f] border border-[#292524] rounded-lg p-3.5 mb-5 text-center space-y-2">
-          <p className="text-[10px] font-mono text-stone-500 font-semibold tracking-wide flex items-center justify-center gap-1">
-            <Shield className="w-3 h-3 text-amber-500" />
-            데모 테스팅 원클릭 빠른 입력
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            <button 
-              type="button"
-              onClick={() => handleQuickDemoFill('user')}
-              className="py-1.5 bg-[#1c1917] hover:bg-amber-500/15 border border-[#2af2524] text-stone-300 hover:text-amber-400 rounded text-[10px] transition font-medium"
-            >
-              이청춘 유저 대입
-            </button>
-            <button 
-              type="button"
-              onClick={() => handleQuickDemoFill('admin')}
-              className="py-1.5 bg-[#1c1917] hover:bg-amber-500/15 border border-[#2af2524] text-stone-300 hover:text-amber-400 rounded text-[10px] transition font-medium"
-            >
-              대표 관리자 대입
-            </button>
-          </div>
         </div>
 
         {errorStatus && (
@@ -218,41 +167,7 @@ export default function Auth({ isOpen, type, onClose, onAuthSuccess }: AuthProps
             </div>
           </div>
 
-          {authType === 'register' && (
-            <div className="space-y-3 pt-2 pb-1 border-t border-[#1c1917] mt-3">
-              <label className="flex items-center gap-2 cursor-pointer text-stone-400 hover:text-stone-200 transition">
-                <input 
-                  type="checkbox"
-                  checked={wantsToBeAdmin}
-                  onChange={(e) => setWantsToBeAdmin(e.target.checked)}
-                  className="rounded border-[#292524] bg-[#12100f] text-amber-500 focus:ring-0 cursor-pointer"
-                />
-                <span className="text-[11px] font-semibold flex items-center gap-1 select-none">
-                  <Shield className="w-3.5 h-3.5 text-amber-500" />
-                  관리자 계정으로 가입 신청하기
-                </span>
-              </label>
-
-              {(wantsToBeAdmin || email.toLowerCase().includes('admin')) && (
-                <div className="space-y-1 pl-4.5 animate-fadeIn">
-                  <label className="text-amber-400 font-bold text-[10px] uppercase tracking-wider block">
-                    관리자 가입 승인 비밀 코드
-                  </label>
-                  <input
-                    type="password"
-                    required
-                    placeholder="비밀 코드 기입"
-                    value={adminCode}
-                    onChange={(e) => setAdminCode(e.target.value)}
-                    className="w-full bg-[#12100f] border border-amber-500/30 rounded-lg px-3 py-2 text-stone-200 focus:outline-none focus:border-amber-500 transition-colors placeholder:text-stone-750 font-mono text-center text-xs"
-                  />
-                  <span className="text-[9.5px] text-stone-500 block leading-tight">
-                    * 비인가 무단 가입 방지를 위해 본사 발급 코드가 필요합니다.
-                  </span>
-                </div>
-              )}
-            </div>
-          )}
+          {/* Email lch200048@gmail.com gets admin auto-role logic securely handled */}
 
           <button
             type="submit"

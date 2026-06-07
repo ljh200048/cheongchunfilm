@@ -8,7 +8,6 @@ interface HeaderProps {
   onTabChange: (tab: ActiveTab) => void;
   onLogout: () => void;
   onOpenAuth: (type: 'login' | 'register') => void;
-  onQuickRoleSwitch: (role: 'user' | 'admin' | 'guest') => void;
 }
 
 export default function Header({
@@ -16,11 +15,9 @@ export default function Header({
   activeTab,
   onTabChange,
   onLogout,
-  onOpenAuth,
-  onQuickRoleSwitch
+  onOpenAuth
 }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [showRoleSwitches, setShowRoleSwitches] = useState(true);
 
   const menuItems: { name: string; tab: ActiveTab; label: string }[] = [
     { name: '홈컨텐츠', tab: 'Home', label: 'Home' },
@@ -36,48 +33,10 @@ export default function Header({
     setMobileMenuOpen(false);
   };
 
+  const isAdmin = currentUser?.email.toLowerCase() === 'lch200048@gmail.com';
+
   return (
     <header className="sticky top-0 z-50 w-full bg-[#0c0a09]/90 backdrop-blur-md border-b border-[#292524] transition-all duration-300">
-      {/* Quick Testing Sandbox Ribbon - Highly interactive and elegant */}
-      {showRoleSwitches && (
-        <div className="bg-[#1c1917] border-b border-[#292524] text-[11px] font-mono py-1.5 px-4 text-stone-400 flex flex-wrap justify-between items-center gap-2">
-          <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-            <span>[AI Studio 테스터 퀵스위치] :</span>
-            <span className="text-amber-100 font-semibold bg-[#292524] px-1.5 py-0.5 rounded">
-              {currentUser ? `${currentUser.name} (${currentUser.role === 'admin' ? '관리자' : '일반고객'})` : '게스트 상태'}
-            </span>
-          </div>
-          <div className="flex gap-2 items-center">
-            <button 
-              onClick={() => onQuickRoleSwitch('guest')} 
-              className={`px-2 py-0.5 rounded transition ${!currentUser ? 'bg-amber-500 text-stone-950 font-semibold' : 'bg-stone-800 hover:bg-stone-700 text-stone-300'}`}
-            >
-              게스트(로그아웃)
-            </button>
-            <button 
-              onClick={() => onQuickRoleSwitch('user')} 
-              className={`px-2 py-0.5 rounded transition ${currentUser?.role === 'user' ? 'bg-amber-500 text-stone-950 font-semibold' : 'bg-stone-800 hover:bg-stone-700 text-stone-300'}`}
-            >
-              일반회원 (이청춘)
-            </button>
-            <button 
-              onClick={() => onQuickRoleSwitch('admin')} 
-              className={`px-2 py-0.5 rounded transition ${currentUser?.role === 'admin' ? 'bg-amber-500 text-stone-950 font-semibold' : 'bg-stone-800 hover:bg-stone-700 text-stone-300'}`}
-            >
-              최고관리자 모드
-            </button>
-            <button 
-              onClick={() => setShowRoleSwitches(false)} 
-              className="text-stone-500 hover:text-stone-300 ml-1.5"
-              title="숨기기"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
-      )}
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-18">
           {/* Logo Brand with CheongChun film requested pair */}
@@ -112,7 +71,7 @@ export default function Header({
           <div className="hidden lg:flex items-center space-x-3">
             {currentUser ? (
               <div className="flex items-center space-x-2">
-                {currentUser.role === 'admin' ? (
+                {isAdmin ? (
                   <button
                     onClick={() => handleTabClick('Admin')}
                     className={`flex items-center gap-1 px-3 py-1.5 text-xs font-mono font-medium rounded-md border transition-all ${
@@ -167,7 +126,7 @@ export default function Header({
 
           {/* Mobile menu trigger */}
           <div className="flex lg:hidden items-center space-x-2">
-            {currentUser && currentUser.role === 'admin' && (
+            {isAdmin && (
               <button
                 onClick={() => handleTabClick('Admin')}
                 className="flex items-center justify-content border border-amber-500/50 p-1.5 rounded-md text-amber-500 text-xs"
@@ -206,7 +165,7 @@ export default function Header({
           <div className="border-t border-[#292524] my-2 pt-2">
             {currentUser ? (
               <div className="space-y-1">
-                {currentUser.role !== 'admin' && (
+                {!isAdmin && (
                   <button
                     onClick={() => handleTabClick('MyPage')}
                     className={`flex items-center gap-2 w-full text-left px-4 py-2.5 rounded-md text-xs font-medium ${
