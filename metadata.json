@@ -1,6 +1,6 @@
 {
-  "name": "청춘필름",
-  "description": "당신의 순간을 영화처럼 기록하는 콘텐츠 제작소",
+  "name": "cheongchun_film | 청춘필름",
+  "description": "cheongchun_film | 청춘필름은 이미지 제작, 포스터 제작, 릴스 숏폼 제작, 예고편 제작, 전체 영상 편집을 전문으로 하는 청춘 콘텐츠 제작팀입니다.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

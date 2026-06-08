@@ -41,7 +41,7 @@ export default function App() {
 
   useEffect(() => {
     const handleUrlRouting = () => {
-      const path = window.location.pathname;
+      const path = window.location.pathname.toLowerCase();
       const user = getStoredUser();
 
       if (path === '/admin') {
@@ -58,10 +58,25 @@ export default function App() {
         } else {
           setActiveTab('Admin');
         }
-      } else {
-        if (path === '/' || path === '') {
+      } else if (path === '/service' || path === '/services') {
+        setActiveTab('Service');
+      } else if (path === '/portfolio') {
+        setActiveTab('Portfolio');
+      } else if (path === '/reservation') {
+        setActiveTab('Reservation');
+      } else if (path === '/schedule') {
+        setActiveTab('Schedule');
+      } else if (path === '/supporters') {
+        setActiveTab('Supporters');
+      } else if (path === '/mypage') {
+        if (!user) {
           setActiveTab('Home');
+          window.history.replaceState(null, '', '/');
+        } else {
+          setActiveTab('MyPage');
         }
+      } else {
+        setActiveTab('Home');
       }
     };
 
@@ -124,9 +139,15 @@ export default function App() {
       window.history.pushState(null, '', '/admin');
     } else {
       setActiveTab(tab);
-      if (window.location.pathname === '/admin') {
-        window.history.pushState(null, '', '/');
-      }
+      let targetPath = '/';
+      if (tab === 'Service') targetPath = '/service';
+      else if (tab === 'Portfolio') targetPath = '/portfolio';
+      else if (tab === 'Reservation') targetPath = '/reservation';
+      else if (tab === 'Schedule') targetPath = '/schedule';
+      else if (tab === 'Supporters') targetPath = '/supporters';
+      else if (tab === 'MyPage') targetPath = '/mypage';
+      
+      window.history.pushState(null, '', targetPath);
     }
   };
 
