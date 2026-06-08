@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { User, ActiveTab } from '../types';
-import { Film, LogIn, LogOut, User as UserIcon, ShieldAlert, Menu, X, Landmark, Compass } from 'lucide-react';
+import { Film, LogIn, LogOut, User as UserIcon, ShieldAlert, Menu, X, Landmark, Compass, Instagram } from 'lucide-react';
 
 interface HeaderProps {
   currentUser: User | null;
@@ -69,6 +69,15 @@ export default function Header({
 
           {/* Right Session Handles */}
           <div className="hidden lg:flex items-center space-x-3">
+            <a 
+              href="https://www.instagram.com/cheongchun__film?igsh=MTY1bHYzOXZ3bXpoMw==" 
+              target="_blank" 
+              rel="noreferrer"
+              className="p-2 text-stone-400 hover:text-amber-500 hover:bg-stone-900/50 rounded-md transition cursor-pointer"
+              title="인스타그램 방문하기"
+            >
+              <Instagram className="w-4 h-4" />
+            </a>
             {currentUser ? (
               <div className="flex items-center space-x-2">
                 {isAdmin ? (
@@ -161,6 +170,19 @@ export default function Header({
               {item.label} ({item.name})
             </button>
           ))}
+          
+          <div className="px-4 py-2 border-b border-[#292524]/30 flex items-center justify-between text-[10px] text-stone-500 font-mono tracking-wider">
+            <span>OFFICIAL SNS</span>
+            <a 
+              href="https://www.instagram.com/cheongchun__film?igsh=MTY1bHYzOXZ3bXpoMw==" 
+              target="_blank" 
+              rel="noreferrer"
+              className="flex items-center gap-1.5 text-amber-500 hover:text-amber-400 font-bold transition"
+            >
+              <Instagram className="w-3.5 h-3.5" />
+              @cheongchun__film
+            </a>
+          </div>
           
           <div className="border-t border-[#292524] my-2 pt-2">
             {currentUser ? (

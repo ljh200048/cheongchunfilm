@@ -69,7 +69,7 @@ export default function Footer({ onTabChange }: FooterProps) {
                 1:1 맞춤 예약하기
               </button>
               <a 
-                href="https://instagram.com" 
+                href="https://www.instagram.com/cheongchun__film?igsh=MTY1bHYzOXZ3bXpoMw==" 
                 target="_blank" 
                 rel="noreferrer" 
                 className="p-1.5 bg-[#1c1917] hover:bg-[#292524] hover:text-white rounded transition flex items-center justify-center self-start"
