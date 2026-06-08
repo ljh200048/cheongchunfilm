@@ -14,14 +14,26 @@
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0c0a09;
+  background: #17120F !important;
 }
 ::-webkit-scrollbar-thumb {
-  background: #292524;
+  background: #241C18 !important;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #44403c;
+  background: #362B25 !important;
+}
+
+/* Base Body Resets */
+html,
+body,
+#root {
+  background-color: #17120F !important;
+  color: #F8F3E8 !important;
+}
+
+p, li, td, th, label, select, input, textarea {
+  font-weight: 500 !important; /* crisper legibility on dark display levels */
 }
 
 /* Film Grain FX overlay */
@@ -32,18 +44,223 @@
   content: "";
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
-  opacity: 0.025;
+  opacity: 0.035;
   pointer-events: none;
   z-index: 999;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
 
-/* Subtle glow */
+/* Ambient Subtle glow */
 .amber-glow {
-  box-shadow: 0 0 30px rgba(245, 158, 11, 0.15);
+  box-shadow: 0 0 30px rgba(255, 210, 30, 0.12);
 }
 
 .amber-glow-sm {
-  box-shadow: 0 0 15px rgba(245, 158, 11, 0.08);
+  box-shadow: 0 0 15px rgba(255, 210, 30, 0.06);
 }
 
+/* ==========================================================================
+   Dark Film/Cinema Theme Mapping Overrides
+   ========================================================================== */
+
+/* 1. Base / Container / Section Backgrounds mapped to #17120F */
+.min-h-screen,
+.bg-\[\#040303\],
+.bg-\[\#070606\],
+.bg-\[\#0c0a09\],
+.bg-\[\#0c0a09\]\/50,
+.bg-\[\#0c0a09\]\/90,
+.bg-stone-950,
+.bg-stone-900\/50,
+.bg-stone-950\/70,
+section.bg-\[\#0c0a09\] {
+  background-color: #17120F !important;
+}
+
+/* 2. Card Backgrounds mapped to #241C18 with subtle shadow for high separation */
+.bg-\[\#0f0d0c\],
+.bg-\[\#12100f\],
+.bg-\[\#12100f\]\/40,
+.bg-\[\#1c1917\],
+.bg-stone-900,
+.bg-stone-850,
+.bg-stone-800,
+.bg-[#0f0d0c],
+.bg-[#12100f],
+.bg-[#1c1917],
+div.bg-\[\#12100f\] {
+  background-color: #241C18 !important;
+  border-color: #362B25 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+}
+
+/* 3. Headers and Navigations mapped to rgba(20, 16, 14, 0.92) */
+header,
+.bg-\[\#0c0a09\]\/80,
+.bg-stone-900\/85 {
+  background-color: rgba(20, 16, 14, 0.92) !important;
+  border-bottom-color: #2D231E !important;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* 4. Fine borders mapped to beautiful dark wood brown */
+.border-\[\#292524\],
+.border-\[\#1c1917\],
+.border-\[\#221f1e\],
+.border-stone-800,
+.border-[#1c1917],
+.border-stone-700,
+.border-\[\#332f2d\],
+.border-stone-900,
+.border-stone-800\/40,
+.border-stone-700\/30 {
+  border-color: #362B25 !important;
+}
+
+/* 5. Typography */
+/* Primary text mapped to #F8F3E8 */
+.text-stone-100,
+.text-\[\#fafaf9\],
+.text-[#fafaf9],
+.text-stone-200,
+.text-[#e7e5e4],
+.text-white,
+span.text-[#fafaf9],
+span.text-stone-100,
+span.text-white {
+  color: #F8F3E8 !important;
+}
+
+/* Secondary / description text mapped to #CFC3B3 */
+.text-stone-300,
+.text-stone-400,
+.text-stone-500,
+.text-stone-600,
+.text-stone-400\/80 {
+  color: #CFC3B3 !important;
+}
+
+/* Titles and Headers (font-weight 700 to 800) */
+h1, h2, h3, h4, h5, h6 {
+  color: #F8F3E8 !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.025em !important;
+}
+
+blockquote, .font-serif {
+  color: #F8F3E8 !important;
+}
+
+/* 6. Point Color: Amber / Golden Yellow Overrides (#FFD21E) */
+/* Amber text */
+.text-amber-500,
+.text-amber-400 {
+  color: #FFD21E !important;
+  font-weight: 700 !important;
+}
+
+/* Amber Border */
+.border-amber-500,
+.border-amber-500\/50 {
+  border-color: #FFD21E !important;
+}
+
+/* Yellow Button Styles (background #FFD21E, text #1A1A1A, font-weight bold) */
+.bg-amber-500,
+.bg-amber-600 {
+  background-color: #FFD21E !important;
+  color: #1A1A1A !important;
+  font-weight: 800 !important;
+  text-shadow: none !important;
+}
+
+.bg-amber-500:hover,
+.bg-amber-600:hover,
+.hover\:bg-amber-600:hover {
+  background-color: #EADC1A !important;
+  color: #1A1A1A !important;
+  font-weight: 800 !important;
+}
+
+/* Standard Secondary Action Hover effects in cards */
+.hover\:bg-stone-900:hover,
+.hover\:bg-\[\#12100f\]:hover,
+.hover\:bg-\[\#1c1917\]:hover,
+.hover\:bg-[#12100f]:hover,
+.hover\:bg-stone-850:hover,
+.hover\:bg-stone-800:hover {
+  background-color: #362B25 !important;
+  color: #F8F3E8 !important;
+}
+
+.bg-stone-900:hover,
+.bg-stone-850:hover,
+.bg-\[\#1c1917\]:hover {
+  background-color: #362B25 !important;
+}
+
+/* Inputs, textareas, forms mapped for pristine high-contrast reading inside #241C18 cards */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="url"],
+input[type="date"],
+input[type="time"],
+select,
+textarea {
+  background-color: #17120F !important;
+  border-color: #362B25 !important;
+  color: #F8F3E8 !important;
+  font-weight: 500 !important;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: #FFD21E !important;
+  outline: none !important;
+}
+
+::placeholder {
+  color: rgba(207, 195, 179, 0.6) !important;
+}
+
+/* Dialog overlays */
+.bg-[#0c0a09]\/85,
+.bg-[#0c0a09]\/90,
+.bg-stone-950/85 {
+  background-color: rgba(12, 9, 8, 0.85) !important;
+}
+
+/* Elegant Tables for MyPage and Admin in our dark cinematic theme */
+table {
+  color: #F8F3E8 !important;
+}
+
+tr {
+  border-bottom-color: #362B25 !important;
+}
+
+tr:hover {
+  background-color: rgba(36, 28, 24, 0.5) !important;
+}
+
+th {
+  background-color: #241C18 !important;
+  color: #CFC3B3 !important;
+}
+
+/* Film trailer gradients - seamless cinematic ambiance instead of light yellow */
+.from-stone-950,
+.from-\[\#0c0a09\] {
+  --tw-gradient-from: #17120F !important;
+  --tw-gradient-to: rgba(23, 18, 15, 0) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+.via-stone-950\/20 {
+  --tw-gradient-to: rgba(23, 18, 15, 0.2) !important;
+}
+.to-transparent {
+  --tw-gradient-to: rgba(23, 18, 15, 0) !important;
+}

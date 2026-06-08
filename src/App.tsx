@@ -131,7 +131,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0c0a09] text-stone-100 flex flex-col justify-between film-grain font-sans">
+    <div className="min-h-screen bg-[#17120F] text-[#F8F3E8] flex flex-col justify-between film-grain font-sans">
       
       {/* Header bar */}
       <Header 

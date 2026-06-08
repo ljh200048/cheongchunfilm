@@ -118,6 +118,30 @@ export default function Reservation({ currentUser, onOpenAuth, onTabChange }: Re
               </div>
             </div>
 
+            {/* Admin Email Notification Simulator UI */}
+            <div className="bg-[#12100f] border border-[#292524] rounded-lg p-5 text-left text-xs space-y-2 max-w-md mx-auto relative overflow-hidden">
+              <div className="absolute top-0 right-0 bg-amber-500/10 border-l border-b border-amber-500/30 px-2 py-1 rounded-bl font-mono text-[9px] text-amber-400 uppercase font-black tracking-wider">
+                Simulated Email Alert
+              </div>
+              <p className="text-[10px] font-bold text-amber-500 flex items-center gap-1">
+                <span>🔔 [관리자 예약 자동알림 전송 시뮬레이션]</span>
+              </p>
+              <div className="space-y-1 text-stone-300 border-t border-[#1c1917]/50 pt-1.5 text-[11px] leading-relaxed">
+                <div><span className="text-stone-500 font-mono">수신 관리자 이메일: </span><span className="text-amber-400 font-mono">lch200048@gmail.com</span></div>
+                <div><span className="text-stone-400 font-bold">인입 메일 제목: </span><span className="text-stone-200">[청춘필름] 새로운 의뢰 예약 신청 접수 알림 ({createdReservation?.userName}님)</span></div>
+                <div className="bg-[#17120F] p-2.5 rounded border border-stone-850 text-stone-400 text-[10.5px] font-mono leading-normal mt-1 whitespace-pre-line">
+                  [예약 접수 세부안]{'\n'}
+                  • 예약 일련 ID: {createdReservation?.id}{'\n'}
+                  • 신청자 성명: {createdReservation?.userName} ({createdReservation?.userEmail || '이메일 없음'}){'\n'}
+                  • 고객 연락 전화번호: {createdReservation?.userPhone}{'\n'}
+                  • 매칭 제작 서비스: {createdReservation?.serviceType}{'\n'}
+                  • 상담 일정: {createdReservation?.date} ({createdReservation?.time}){'\n'}
+                  • 세부 고객 기안안:{'\n'}
+                  {createdReservation?.request}
+                </div>
+              </div>
+            </div>
+
             <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
               <button
                 onClick={() => onTabChange('MyPage')}
