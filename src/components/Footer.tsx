@@ -86,7 +86,7 @@ export default function Footer({ onTabChange }: FooterProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-stone-600 text-[10px]">
         <div className="text-center sm:text-left space-y-1">
           <p>© 2026 cheongchun_film. All Rights Reserved.</p>
-          <p className="font-mono">상호명: 청춘콘텐츠랩스 | 대표자: 임청춘 | 이메일: lch200048@gmail.com | 서울시 청년창업지구</p>
+          <p className="font-mono">상호명: 청춘필름 | 대표자: 이재호 | 이메일: lch200048@gmail.com | 충청북도 청주시 흥덕구</p>
         </div>
         
         <div className="flex items-center gap-4">
