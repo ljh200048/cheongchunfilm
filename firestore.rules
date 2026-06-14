@@ -1,0 +1,51 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Global utility functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.email.toLowerCase() == "lch200048@gmail.com";
+    }
+
+    // 1. 제작 신청 (productionApplications)
+    match /productionApplications/{applicationId} {
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
+    // 2. 서포터즈 신청 (supporterApplications)
+    match /supporterApplications/{applicationId} {
+      allow read: if isAdmin();
+      allow create: if true; // Any visitor can submit supporter form
+      allow update, delete: if isAdmin();
+    }
+
+    // 3. 문의방 (inquiries)
+    match /inquiries/{inquiryId} {
+      allow read: if isAdmin();
+      allow create: if true; // Any visitor can post contact inquiry
+      allow update, delete: if isAdmin();
+    }
+
+    // 4. 공지방 (notices)
+    match /notices/{noticeId} {
+      allow read: if true; // Public view
+      allow write: if isAdmin(); // Admin restricted
+    }
+
+    // 5. 필름챕 (portfolios)
+    match /portfolios/{portfolioId} {
+      allow read: if true; // Public view
+      allow write: if isAdmin(); // Admin restricted
+    }
+  }
+}

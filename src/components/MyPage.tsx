@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { User, Reservation, ReservationStatus } from '../types';
-import { getStoredReservations, saveReservation, deleteReservation } from '../utils/storage';
+import { 
+  getStoredReservations, 
+  saveReservation, 
+  deleteReservation,
+  // Firestore calls
+  fetchProductionApplicationsFromFirestore,
+  saveProductionApplicationToFirestore,
+  deleteProductionApplicationFromFirestore
+} from '../utils/storage';
 import { User as UserIcon, Calendar, Film, Check, SquarePen, AlertCircle, Trash2, Clock, Mail, Phone, ExternalLink, X } from 'lucide-react';
 
 interface MyPageProps {
@@ -22,16 +30,24 @@ export default function MyPage({ currentUser, onTabChange }: MyPageProps) {
   const times = ['오전 10시', '오전 11시', '오후 1시', '오후 3시', '오후 5시', '오후 8시'];
 
   useEffect(() => {
-    if (currentUser) {
-      const allRes = getStoredReservations();
-      setReservations(allRes.filter(r => r.userId === currentUser.id));
-    }
+    loadReservations();
   }, [currentUser]);
 
-  const loadReservations = () => {
-    if (currentUser) {
-      const allRes = getStoredReservations();
-      setReservations(allRes.filter(r => r.userId === currentUser.id));
+  const loadReservations = async () => {
+    if (!currentUser) return;
+    
+    // Initial optimistic load from Local Storage state
+    const allLocal = getStoredReservations();
+    setReservations(allLocal.filter(r => r.userId === currentUser.id));
+
+    // Secondary sync from live Firestore database
+    try {
+      const allDb = await fetchProductionApplicationsFromFirestore();
+      if (allDb && allDb.length > 0) {
+        setReservations(allDb.filter(r => r.userId === currentUser.id));
+      }
+    } catch (err) {
+      console.warn("Utilizing synced local storage backup in MyPage.", err);
     }
   };
 
@@ -45,7 +61,7 @@ export default function MyPage({ currentUser, onTabChange }: MyPageProps) {
     setEditRequest(res.request);
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (!editingRes) return;
 
     const updated: Reservation = {
@@ -56,15 +72,31 @@ export default function MyPage({ currentUser, onTabChange }: MyPageProps) {
       request: editRequest
     };
 
-    saveReservation(updated);
+    // Optimistically update list
+    setReservations(prev => prev.map(r => r.id === editingRes.id ? updated : r));
     setEditingRes(null);
-    loadReservations();
+
+    try {
+      await saveProductionApplicationToFirestore(updated);
+    } catch (err) {
+      console.warn("Firestore edit deferred, fallback to local storage sync.", err);
+    } finally {
+      loadReservations();
+    }
   };
 
-  const handleDeleteRes = (id: string) => {
+  const handleDeleteRes = async (id: string) => {
     if (window.confirm('정말로 이 제작 신청을 철회/취소하시겠습니까?')) {
-      deleteReservation(id);
-      loadReservations();
+      // Optimistically update list
+      setReservations(prev => prev.filter(r => r.id !== id));
+
+      try {
+        await deleteProductionApplicationFromFirestore(id);
+      } catch (err) {
+        console.warn("Firestore delete deferred.", err);
+      } finally {
+        loadReservations();
+      }
     }
   };
 

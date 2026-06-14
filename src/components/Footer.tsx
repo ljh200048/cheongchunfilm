@@ -22,7 +22,7 @@ export default function Footer({ onTabChange }: FooterProps) {
             <div className="flex items-center gap-2 cursor-pointer" onClick={() => onTabChange('Home')}>
               <Film className="w-5 h-5 text-amber-500" />
               <span className="font-display text-base font-bold tracking-widest text-[#fafaf9]">
-                청춘필름
+                CHEONGCHUN FILM
               </span>
             </div>
             <p className="text-stone-500 leading-relaxed max-w-xs text-[11px]">
@@ -86,7 +86,9 @@ export default function Footer({ onTabChange }: FooterProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-stone-600 text-[10px]">
         <div className="text-center sm:text-left space-y-1">
           <p>© 2026 cheongchun_film. All Rights Reserved.</p>
-          <p className="font-mono">상호명: 청춘필름 | 대표자: 이재호 | 이메일: lch200048@gmail.com | 충청북도 청주시 흥덕구</p>
+          <p className="font-mono">
+            상호명: cheongchun_film | 청춘필름 | 대표자: 이재호 | 이메일: <a href="mailto:lch200048@gmail.com" className="hover:text-amber-500 underline transition">lch200048@gmail.com</a> | 위치: 충청북도 청주시
+          </p>
         </div>
         
         <div className="flex items-center gap-4">

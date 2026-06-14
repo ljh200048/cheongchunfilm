@@ -66,37 +66,36 @@ export default function Hero({ onTabChange }: HeroProps) {
         </div>
 
         {/* Headings */}
-        <h1 className="font-display font-black text-3xl sm:text-5xl lg:text-6xl tracking-tight text-[#fafaf9] max-w-3xl leading-[1.1] mb-6">
-          오늘의 짧은 순간이 <br />
-          <span className="text-amber-500 inline-block relative">
-            하나의 영화가 됩니다
+        <h1 className="font-display font-black text-3xl sm:text-5xl lg:text-[64px] tracking-tight text-[#fafaf9] max-w-4xl leading-[1.12] mb-6">
+          오늘의 짧았던 일상이 <br />
+          <span className="text-amber-500 inline-block relative mt-2">
+            가장 낭만적인 영화가 됩니다
           </span>
         </h1>
 
         {/* Sub-text containing the exact copwrite */}
-        <p className="font-sans text-xs sm:text-sm text-stone-400 max-w-2xl leading-relaxed mb-10">
-          평범한 사진 한 장도, 짧은 영상 한 컷도 cheongchun_film을 만나면 마음을 요동치게 하는 하나의 장면이 됩니다. 
-          이미지 제작부터 포스터 디자인, 릴스/숏폼, 특별한 모임 예고편, 전문 전체 편집까지 필요한 순간에 맞춘 
-          감성 가득한 콘텐츠를 제작해 드립니다. 
+        <p className="font-sans text-xs sm:text-sm md:text-base text-stone-300 max-w-3xl leading-relaxed mb-10">
+          평범한 사진 한 장도, 무심히 지나치는 영상 한 컷도 <strong>CHEONGCHUN FILM</strong>을 만나면 사람들의 영혼을 울리는 하나의 시네마틱 장면이 됩니다. 
+          고해상도 맞춤 이미지 제작부터 시선을 사로잡는 포스터 디자인, 트렌디한 3초 매직 릴스/숏폼, 감동적인 모임 예고편, 전문 영화급 컬러 그레이딩 전체 편집까지—
           <br className="hidden sm:inline" />
-          지금 남기고 싶은 청춘의 장면이 있다면, cheongchun_film이 가장 시네마틱하게 만들어드릴게요.
+          마음에 오래 머무를 당신만의 따스한 하이라이트를 가장 압도적이고 완벽한 색채로 소장해 보세요.
         </p>
 
-        {/* Action Buttons with the explicit text recommendation */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center w-full max-w-md">
+        {/* Action Buttons with highly highlighted booking style */}
+        <div className="flex flex-col sm:flex-row gap-4.5 justify-center w-full max-w-lg">
           <button
             onClick={() => onTabChange('Reservation')}
-            className="flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-stone-900 font-semibold px-6 py-3.5 rounded-lg text-xs tracking-wider transition-all duration-300 shadow-lg shadow-amber-500/10 hover:-translate-y-0.5 cursor-pointer"
+            className="flex items-center justify-center gap-2.5 bg-amber-500 hover:bg-amber-400 text-stone-950 font-black px-8 py-4 rounded-xl text-xs sm:text-xs tracking-widest uppercase transition-all duration-300 shadow-xl shadow-amber-500/20 hover:shadow-amber-500/40 hover:-translate-y-0.5 active:scale-98 cursor-pointer ring-4 ring-amber-500/10"
           >
-            <CalendarDays className="w-4 h-4" />
-            원하는 날짜로 제작 예약하기
+            <CalendarDays className="w-4 h-4 text-stone-900 group-hover:scale-110 transition-transform" />
+            원하는 날짜로 제작 예약하기 ⟶
           </button>
           <button
             onClick={() => onTabChange('Portfolio')}
-            className="flex items-center justify-center gap-2 bg-stone-900 hover:bg-stone-800 border border-[#292524] text-stone-200 hover:text-white px-6 py-3.5 rounded-lg text-xs tracking-wider transition-all duration-300 hover:-translate-y-0.5 cursor-pointer"
+            className="flex items-center justify-center gap-2 bg-stone-900 hover:bg-stone-855 border border-[#292524] text-stone-200 hover:text-white px-8 py-4 rounded-xl text-xs tracking-wider transition-all duration-300 hover:-translate-y-0.5 cursor-pointer hover:border-stone-500 active:scale-98"
           >
             <Eye className="w-4 h-4" />
-            제작 포트폴리오 보기
+            제작 포트폴리오 전체 감상
           </button>
         </div>
 
@@ -123,11 +122,11 @@ export default function Hero({ onTabChange }: HeroProps) {
           <div className="flex flex-col sm:flex-row items-center justify-between border-b border-[#1c1917] pb-3.5 mb-5 text-stone-500 text-[10px] font-mono px-2 gap-3">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
-              <span className="text-stone-300 font-bold tracking-wider uppercase">LIVE VIEWER STAGING</span>
-              <span className="bg-stone-900 px-1.5 py-0.5 rounded border border-stone-800 text-stone-500 font-bold">STAGING_ACTIVE</span>
+              <span className="text-stone-300 font-bold tracking-wider uppercase">CINEMATIC COLOR SIMULATOR</span>
+              <span className="bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20 text-amber-400 font-bold">PREVIEW READY</span>
             </div>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 justify-center">
-              <span>CHEONGCHUN_ANALOG_50D.ISO</span>
+              <span>ANALOG_35MM_50D.ISO</span>
               <span>•</span>
               <span>SHUTTER SPEED 1/60s</span>
               <span>•</span>
@@ -137,7 +136,7 @@ export default function Hero({ onTabChange }: HeroProps) {
                 title="기본 설정으로 사진 연결 초기화"
               >
                 <RefreshCcw className="w-3 h-3" />
-                <span>사진 연결 초기화</span>
+                <span>시네마틱 샘플 복원</span>
               </button>
             </div>
           </div>
@@ -176,11 +175,11 @@ export default function Hero({ onTabChange }: HeroProps) {
                         ? 'bg-amber-500 text-stone-950 font-extrabold border-amber-600'
                         : 'bg-stone-900/85 text-stone-400 border-stone-800'
                     }`}>
-                      {`FRAME 0${index + 1} ${isSelected ? '● 편집 중' : '클릭시연결'}`}
+                      {`SCENE 0${index + 1} ${isSelected ? '● 편집 중' : '클릭하여 교체'}`}
                     </span>
 
                     <span className="absolute bottom-3 left-3 text-[10px] font-mono text-stone-300 tracking-wide font-medium">
-                      {index === 0 ? 'SIGNATURE_COVER' : index === 1 ? 'SCENE_02 / AMBER_GLOW' : 'SCENE_03 / FILM_GRAIN'}
+                      {index === 0 ? '시네마틱 시그니처 (Warm)' : index === 1 ? '새벽녘 엠버 글로우 (Amber)' : '클래식 필름 그레인 (Grain)'}
                     </span>
                     
                     {/* Retro focus reticle overlays */}
@@ -197,9 +196,9 @@ export default function Hero({ onTabChange }: HeroProps) {
               <div className="mt-6 p-4 rounded-xl border border-amber-500/20 bg-[#0c0a09] transition-all duration-300">
                 <div className="flex items-center justify-between border-b border-[#1c1917] pb-2.5 mb-3.5">
                   <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
                     <span className="text-[11px] font-mono text-stone-200">
-                      인터넷 이미지 연결 (HTTP Address Link): <strong className="text-amber-500">FRAME 0{selectedFrame + 1}</strong>
+                      실시간 프리뷰 이미지 주소 설정: <strong className="text-amber-400">SCENE 0{selectedFrame + 1}</strong>
                     </span>
                   </div>
                   <button 
@@ -215,7 +214,7 @@ export default function Hero({ onTabChange }: HeroProps) {
                     <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500" />
                     <input
                       type="url"
-                      placeholder="불러오실 이미지 주소(http:// 또는 https://)를 여기에 붙여넣어 주세요"
+                      placeholder="불러오실 웹 이미지 주소(http:// 또는 https://)를 입력 또는 복사해서 붙여넣어 주세요"
                       value={inputUrl}
                       onChange={(e) => setInputUrl(e.target.value)}
                       className="w-full bg-[#12100f] border border-[#221f1e] rounded-lg pl-10 pr-4 py-2 text-stone-200 placeholder:text-stone-700 text-xs focus:outline-none focus:border-amber-500 font-mono"
@@ -224,9 +223,9 @@ export default function Hero({ onTabChange }: HeroProps) {
                   </div>
                   <button
                     type="submit"
-                    className="px-4.5 py-2.5 bg-amber-500 hover:bg-amber-600 text-stone-900 font-bold rounded-lg text-xs transition cursor-pointer shrink-0"
+                    className="px-4.5 py-2.5 bg-amber-500 hover:bg-amber-650 text-stone-900 font-bold rounded-lg text-xs transition cursor-pointer shrink-0"
                   >
-                    HTTP 주소 연결하기
+                    프레임 실시간 적용
                   </button>
                 </form>
 
@@ -238,31 +237,31 @@ export default function Hero({ onTabChange }: HeroProps) {
                         {statusMessage}
                       </span>
                     ) : (
-                      <span className="text-stone-400">🔗 원하는 웹 사이트 이미지 주소(URL)를 복사해서 언제든지 프레임에 로딩할 수 있습니다.</span>
+                      <span className="text-stone-400">💡 웹 상의 원하시는 이미지 링크를 연동하여 시네마틱 톤 프리뷰를 실시간으로 확인해볼 수 있습니다.</span>
                     )}
                   </div>
                   <div className="flex items-center gap-2 text-stone-500">
-                    <span>테스트 추천:</span>
+                    <span>추천 테마:</span>
                     <button
                       type="button"
                       onClick={() => applyPreset("https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&auto=format&fit=crop&q=80")}
                       className="text-stone-400 hover:text-amber-500 transition underline decoration-dashed underline-offset-2 cursor-pointer"
                     >
-                      공연
+                      콘서트홀
                     </button>
                     <button
                       type="button"
                       onClick={() => applyPreset("https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800&auto=format&fit=crop&q=80")}
                       className="text-stone-400 hover:text-amber-500 transition underline decoration-dashed underline-offset-2 cursor-pointer"
                     >
-                      모닥불
+                      모닥불 캠핑
                     </button>
                     <button
                       type="button"
                       onClick={() => applyPreset("https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800&auto=format&fit=crop&q=80")}
                       className="text-stone-400 hover:text-amber-500 transition underline decoration-dashed underline-offset-2 cursor-pointer"
                     >
-                      북카페
+                      앤틱 라이브러리
                     </button>
                   </div>
                 </div>

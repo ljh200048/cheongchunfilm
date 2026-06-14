@@ -1,0 +1,104 @@
+{
+  "entities": {
+    "ProductionApplication": {
+      "title": "ProductionApplication",
+      "description": "Reservation details for content production",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userPhone": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "serviceType": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "time": { "type": "string" },
+        "request": { "type": "string" },
+        "status": { "type": "string", "enum": ["대기", "확정", "진행중", "완료", "취소"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "userName", "userPhone", "userEmail", "serviceType", "date", "time", "request", "status", "createdAt"]
+    },
+    "SupporterApplication": {
+      "title": "SupporterApplication",
+      "description": "Applications submitted to join the supporters program",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "field": { "type": "string" },
+        "reason": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "phone", "email", "field", "reason", "createdAt"]
+    },
+    "Inquiry": {
+      "title": "Inquiry",
+      "description": "Customer inquiry message",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "email", "phone", "title", "message", "createdAt"]
+    },
+    "Notice": {
+      "title": "Notice",
+      "description": "Announcement/Notice post",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "author": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "title", "content", "author", "createdAt"]
+    },
+    "PortfolioItem": {
+      "title": "PortfolioItem",
+      "description": "A single works/projects demo in Cheongchun Film standard gallery",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "category": { "type": "string", "enum": ["이미지 제작", "포스터 제작", "릴스 숏폼", "예고편", "전체 편집"] },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "videoUrl": { "type": "string" },
+        "client": { "type": "string" },
+        "date": { "type": "string" }
+      },
+      "required": ["id", "category", "title", "description", "imageUrl"]
+    }
+  },
+  "firestore": {
+    "/productionApplications/{applicationId}": {
+      "schema": "ProductionApplication",
+      "description": "Collection of customer production reservations"
+    },
+    "/supporterApplications/{applicationId}": {
+      "schema": "SupporterApplication",
+      "description": "Collection of helper/supporter program applications"
+    },
+    "/inquiries/{inquiryId}": {
+      "schema": "Inquiry",
+      "description": "Collection of generic contact inquiries"
+    },
+    "/notices/{noticeId}": {
+      "schema": "Notice",
+      "description": "Collection of official studio board notice articles"
+    },
+    "/portfolios/{portfolioId}": {
+      "schema": "PortfolioItem",
+      "description": "Collection of film chap / published portfolio galleries"
+    }
+  }
+}

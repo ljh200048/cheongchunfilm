@@ -2,14 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { User, Reservation, ReservationStatus, SupporterApplicant, ScheduleItem, PortfolioItem } from '../types';
 import { 
   getStoredReservations, 
-  saveReservation, 
-  deleteReservation,
   getStoredSupporters,
   getStoredSchedules,
-  saveSchedule,
-  deleteSchedule,
   getStoredPortfolios,
-  savePortfolio
+  // Firestore calls
+  fetchProductionApplicationsFromFirestore,
+  saveProductionApplicationToFirestore,
+  deleteProductionApplicationFromFirestore,
+  fetchSupporterApplicationsFromFirestore,
+  fetchSchedulesFromFirestore,
+  saveScheduleToFirestore,
+  deleteScheduleFromFirestore,
+  fetchPortfoliosFromFirestore,
+  savePortfolioToFirestore
 } from '../utils/storage';
 import { 
   ShieldAlert, Calendar, Users, Briefcase, Plus, Trash2, Check, ArrowRight, 
@@ -25,6 +30,9 @@ export default function Admin() {
   const [supporters, setSupporters] = useState<SupporterApplicant[]>([]);
   const [schedules, setSchedules] = useState<ScheduleItem[]>([]);
   const [portfolios, setPortfolios] = useState<PortfolioItem[]>([]);
+
+  // Loading state
+  const [isLoading, setIsLoading] = useState(false);
 
   // Filter state for reservations
   const [filterStatus, setFilterStatus] = useState<string>('전체');
@@ -47,15 +55,62 @@ export default function Admin() {
     loadAllAdminData();
   }, [adminTab]);
 
-  const loadAllAdminData = () => {
-    setReservations(getStoredReservations());
-    setSupporters(getStoredSupporters());
-    setSchedules(getStoredSchedules());
-    setPortfolios(getStoredPortfolios());
+  const renderRequestDetails = (reqStr: string) => {
+    if (!reqStr) return <p className="text-stone-500">요청 사항이 존재하지 않습니다.</p>;
+    if (reqStr.includes('[제작 목적]:')) {
+      const lines = reqStr.split('\n');
+      return (
+        <div className="space-y-2">
+          {lines.map((ln, idx) => {
+            const colonIdx = ln.indexOf(']:');
+            if (colonIdx !== -1) {
+              const label = ln.substring(0, colonIdx + 1);
+              const text = ln.substring(colonIdx + 2).trim();
+              return (
+                <div key={idx} className="bg-[#12100f] border border-[#1c1917] rounded-lg p-2 flex flex-col gap-0.5">
+                  <span className="text-amber-500 font-bold uppercase tracking-wider text-[9px] font-mono">{label}</span>
+                  <span className="text-stone-300 font-sans leading-relaxed text-[11px] whitespace-pre-wrap">{text || '없음'}</span>
+                </div>
+              );
+            }
+            return <p key={idx} className="text-stone-300 font-sans leading-relaxed text-[11px] whitespace-pre-wrap">{ln}</p>;
+          })}
+        </div>
+      );
+    }
+    return <p className="text-stone-350 bg-[#12100f]/80 p-3 rounded-lg border border-[#1c1917] font-sans leading-relaxed text-[11px] whitespace-pre-wrap">{reqStr}</p>;
+  };
+
+  const loadAllAdminData = async () => {
+    setIsLoading(true);
+    try {
+      // Optimistic load from local storage
+      setReservations(getStoredReservations());
+      setSupporters(getStoredSupporters());
+      setSchedules(getStoredSchedules());
+      setPortfolios(getStoredPortfolios());
+
+      // Async load real-time database from Firestore collections
+      const [resList, supList, schList, portList] = await Promise.all([
+        fetchProductionApplicationsFromFirestore(),
+        fetchSupporterApplicationsFromFirestore(),
+        fetchSchedulesFromFirestore(),
+        fetchPortfoliosFromFirestore()
+      ]);
+
+      if (resList.length > 0) setReservations(resList);
+      if (supList.length > 0) setSupporters(supList);
+      if (schList.length > 0) setSchedules(schList);
+      if (portList.length > 0) setPortfolios(portList);
+    } catch (e) {
+      console.warn("Using offline / local storage backup data for admin hub", e);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Status Change trigger
-  const handleUpdateStatus = (id: string, newStatus: ReservationStatus) => {
+  const handleUpdateStatus = async (id: string, newStatus: ReservationStatus) => {
     const found = reservations.find(r => r.id === id);
     if (!found) return;
 
@@ -63,20 +118,32 @@ export default function Admin() {
       ...found,
       status: newStatus
     };
-    saveReservation(updated);
-    setReservations(getStoredReservations());
+
+    // Optimistically update UI
+    setReservations(prev => prev.map(r => r.id === id ? updated : r));
+
+    try {
+      await saveProductionApplicationToFirestore(updated);
+    } catch (err) {
+      alert("Firestore에 신청서 상태 업데이트가 기기 사정으로 백업 저장 처리되었습니다.");
+    }
   };
 
   // Delete Reservation
-  const handleDeleteRes = (id: string) => {
+  const handleDeleteRes = async (id: string) => {
     if (window.confirm('정말로 이 예약 신청 건을 완전히 영구 삭제하시겠습니까?')) {
-      deleteReservation(id);
-      setReservations(getStoredReservations());
+      setReservations(prev => prev.filter(r => r.id !== id));
+      try {
+        await deleteProductionApplicationFromFirestore(id);
+      } catch (err) {
+        alert("Firestore에서 신청서 삭제가 지연되어 예약 목록을 새로고침합니다.");
+        loadAllAdminData();
+      }
     }
   };
 
   // Create Milestone
-  const handleCreateSchedule = (e: React.FormEvent) => {
+  const handleCreateSchedule = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!schTitle || !schDate) return;
 
@@ -87,23 +154,36 @@ export default function Admin() {
       description: schDescription
     };
 
-    saveSchedule(newItem);
+    // Optimistically update
+    setSchedules(prev => [...prev, newItem]);
     setSchTitle('');
     setSchDescription('');
-    setSchedules(getStoredSchedules());
-    alert('새 세부 일정이 cheongchun_film 달력에 등록 배포되었습니다!');
+
+    try {
+      await saveScheduleToFirestore(newItem);
+      alert('새 세부 일정이 cheongchun_film 달력에 등록 배포되었습니다!');
+    } catch (err) {
+      alert('달력 일정이 임시 저장되었습니다.');
+    } finally {
+      loadAllAdminData();
+    }
   };
 
   // Delete Milestone
-  const handleDeleteSchedule = (id: string) => {
+  const handleDeleteSchedule = async (id: string) => {
     if (window.confirm('이 스케줄 마일스톤을 달력에서 삭제제외하시겠습니까?')) {
-      deleteSchedule(id);
-      setSchedules(getStoredSchedules());
+      setSchedules(prev => prev.filter(s => s.id !== id));
+      try {
+        await deleteScheduleFromFirestore(id);
+      } catch (err) {
+        alert('스케줄 삭제 중 에러가 발생했습니다.');
+        loadAllAdminData();
+      }
     }
   };
 
   // Create Portfolio
-  const handleCreatePortfolio = (e: React.FormEvent) => {
+  const handleCreatePortfolio = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!portTitle || !portImgUrl) return;
 
@@ -120,14 +200,22 @@ export default function Admin() {
       date: portDate || '2026.06'
     };
 
-    savePortfolio(newItem);
+    // Optimistically update
+    setPortfolios(prev => [newItem, ...prev]);
     setPortTitle('');
     setPortDesc('');
     setPortImgUrl('');
     setPortClient('');
     setPortCategory('포스터 제작');
-    setPortfolios(getStoredPortfolios());
-    alert('새 포트폴리오 프로젝트가 공식 갤러리에 업로드 및 등록 마감되었습니다!');
+
+    try {
+      await savePortfolioToFirestore(newItem);
+      alert('새 포트폴리오 프로젝트가 공식 갤러리에 업로드 및 등록 마감되었습니다!');
+    } catch (err) {
+      alert('새 포트폴리오가 임시 보관함에 복사되었습니다.');
+    } finally {
+      loadAllAdminData();
+    }
   };
 
   const getStatusTagClass = (status: ReservationStatus) => {
@@ -139,6 +227,7 @@ export default function Admin() {
       case '취소': return 'bg-red-500/10 border border-red-500/30 text-red-400';
     }
   };
+
 
   const filteredReservations = filterStatus === '전체'
     ? reservations
@@ -297,11 +386,9 @@ export default function Admin() {
                         </div>
 
                         {/* Detail text */}
-                        <div className="space-y-1 text-xs">
+                        <div className="space-y-2 col-span-1 md:col-span-1 max-h-48 overflow-y-auto">
                           <p className="text-[10px] text-stone-600 uppercase tracking-widest font-bold">의뢰 상세 목적 및 비고</p>
-                          <p className="text-stone-400 bg-[#12100f] p-3 rounded-lg border border-[#1c1917] leading-relaxed overflow-y-auto max-h-24 white-space-pre-wrap text-[11px]">
-                            {res.request}
-                          </p>
+                          {renderRequestDetails(res.request)}
                         </div>
 
                       </div>

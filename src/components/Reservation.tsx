@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User, Reservation as ReservationType, ReservationStatus } from '../types';
-import { getStoredReservations, saveReservation } from '../utils/storage';
+import { getStoredReservations, saveReservation, saveProductionApplicationToFirestore } from '../utils/storage';
 import { Calendar, Clock, Edit3, Link, Check, AlertCircle, Sparkles, LogIn, ChevronRight, CheckCircle } from 'lucide-react';
 
 interface ReservationProps {
@@ -29,7 +29,7 @@ export default function Reservation({ currentUser, onOpenAuth, onTabChange }: Re
   const services = ['이미지 제작', '포스터 제작', '릴스 숏폼', '예고편', '전체 편집'];
 
   // Form submit handler
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser) {
       onOpenAuth('login');
@@ -50,7 +50,16 @@ export default function Reservation({ currentUser, onOpenAuth, onTabChange }: Re
       createdAt: new Date().toISOString()
     };
 
+    // Save to local storage
     saveReservation(newRes);
+    
+    // Save to Firestore real-time database
+    try {
+      await saveProductionApplicationToFirestore(newRes);
+    } catch (err) {
+      console.warn("Firestore save deferred, utilizing local storage sync.", err);
+    }
+
     setCreatedReservation(newRes);
     setIsSuccess(true);
   };
@@ -204,8 +213,8 @@ export default function Reservation({ currentUser, onOpenAuth, onTabChange }: Re
             <form onSubmit={handleSubmit} className="space-y-8">
               
               {/* Step 1: Service selection */}
-              <div className="space-y-3">
-                <label className="block text-xs font-bold text-stone-400 uppercase tracking-wider">
+              <div className="space-y-4">
+                <label className="block text-xs font-bold text-stone-400 uppercase tracking-widest">
                   01. 희망 제작 서비스 선택
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
@@ -214,10 +223,10 @@ export default function Reservation({ currentUser, onOpenAuth, onTabChange }: Re
                       key={svc}
                       type="button"
                       onClick={() => setServiceType(svc)}
-                      className={`py-3.5 px-3 text-center text-xs font-semibold rounded-lg border transition ${
+                      className={`py-4 px-3 text-center text-xs font-bold rounded-xl border transition-all duration-200 cursor-pointer ${
                         serviceType === svc
-                          ? 'bg-amber-500/10 border-amber-500 text-amber-400 font-extrabold'
-                          : 'bg-[#12100f] border-stone-850 text-stone-400 hover:text-white hover:border-[#292524]'
+                          ? 'bg-amber-500/10 border-amber-500 text-amber-450 font-extrabold shadow-md shadow-amber-500/5'
+                          : 'bg-[#12100f] border-stone-850 text-stone-400 hover:text-white hover:border-stone-700'
                       }`}
                     >
                       {svc}
@@ -227,13 +236,13 @@ export default function Reservation({ currentUser, onOpenAuth, onTabChange }: Re
               </div>
 
               {/* Step 2: Date & Time Selector */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 
                 {/* Visual Calendar Selector Input */}
                 <div className="space-y-3">
-                  <label className="block text-xs font-bold text-stone-400 uppercase tracking-wider flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5 text-amber-500" />
-                    02. 희망 촬영/최종 마감 날짜
+                  <label className="block text-xs font-bold text-stone-400 uppercase tracking-widest flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-amber-500" />
+                    02. 희망 촬영 및 최종 마감 기한
                   </label>
                   <input
                     type="date"
@@ -242,18 +251,18 @@ export default function Reservation({ currentUser, onOpenAuth, onTabChange }: Re
                     min="2026-06-01"
                     max="2026-12-31"
                     onChange={(e) => setDate(e.target.value)}
-                    className="w-full bg-[#12100f] border border-[#292524] rounded-lg px-4 py-3 text-xs text-stone-200 focus:outline-none focus:border-amber-500 transition font-mono focus:ring-1 focus:ring-amber-500"
+                    className="w-full bg-[#12100f] border border-[#292524] rounded-xl px-4 py-3.5 text-xs text-stone-200 focus:outline-none focus:border-amber-500 transition-all font-mono focus:ring-2 focus:ring-amber-500/20"
                   />
                   <p className="text-[10px] text-stone-500 leading-normal">
-                    * 오늘 기준 5월 이후 6월부터 예약 가능 일정이 배치됩니다.
+                    * 오늘 기준 6월부터 연말까지 예약 가능 일정이 최적 배치됩니다.
                   </p>
                 </div>
 
                 {/* Hour slots */}
                 <div className="space-y-3">
-                  <label className="block text-xs font-bold text-stone-400 uppercase tracking-wider flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-amber-500" />
-                    03. 상담/미팅 희망 시간
+                  <label className="block text-xs font-bold text-stone-400 uppercase tracking-widest flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-amber-500" />
+                    03. 선호하는 기획 미팅 시간대
                   </label>
                   <div className="grid grid-cols-3 gap-2">
                     {timeSlots.map((slot) => (
@@ -261,10 +270,10 @@ export default function Reservation({ currentUser, onOpenAuth, onTabChange }: Re
                         key={slot}
                         type="button"
                         onClick={() => setTime(slot)}
-                        className={`py-2 text-center text-xs font-medium rounded-lg border transition ${
+                        className={`py-3 text-center text-xs font-bold rounded-xl border transition-all duration-200 cursor-pointer ${
                           time === slot
-                            ? 'bg-amber-500/10 border-amber-500 text-amber-400 font-bold'
-                            : 'bg-[#12100f] border-stone-850 text-stone-400 hover:text-white hover:border-[#292524]'
+                            ? 'bg-amber-500/10 border-amber-500 text-amber-400 font-extrabold'
+                            : 'bg-[#12100f] border-stone-850 text-stone-400 hover:text-white hover:border-stone-750'
                         }`}
                       >
                         {slot}
@@ -276,61 +285,61 @@ export default function Reservation({ currentUser, onOpenAuth, onTabChange }: Re
               </div>
 
               {/* Step 3: Brief Form details */}
-              <div className="space-y-5 border-t border-[#1c1917] pt-6">
+              <div className="space-y-6 border-t border-[#1c1917] pt-6">
                 
-                <h4 className="text-xs font-bold text-stone-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <Edit3 className="w-3.5 h-3.5 text-amber-500" />
-                  04. 제작 목적 및 참고 사항 입력
+                <h4 className="text-xs font-bold text-stone-400 uppercase tracking-widest flex items-center gap-2">
+                  <Edit3 className="w-4 h-4 text-amber-500" />
+                  04. 제작 목적 및 비고/레퍼런스 기입
                 </h4>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="block text-[11px] text-stone-400 font-medium">제작 목적</label>
+                  <div className="space-y-2">
+                    <label className="block text-xs text-stone-450 font-bold">제작의 기본 타겟/목적</label>
                     <input
                       type="text"
                       required
                       placeholder="예시: 동아리 축전 홍보용, 브이로그 추억 기록"
                       value={purpose}
                       onChange={(e) => setPurpose(e.target.value)}
-                      className="w-full bg-[#12100f] border border-[#292524] rounded-lg px-4 py-3 text-xs text-stone-200 focus:outline-none focus:border-amber-500 transition"
+                      className="w-full bg-[#12100f] border border-[#292524] rounded-xl px-4 py-3.5 text-xs text-stone-200 focus:outline-none focus:border-amber-500 transition-all focus:ring-2 focus:ring-amber-500/20"
                     />
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label className="block text-[11px] text-stone-400 font-medium flex items-center gap-1">
-                      참고자료 링크 <span className="text-[10px] text-stone-500">(선택)</span>
+                  <div className="space-y-2">
+                    <label className="block text-xs text-stone-450 font-bold flex items-center gap-1">
+                      참고자료 URL 링크 <span className="text-[10px] text-stone-500">(선택)</span>
                     </label>
                     <input
                       type="url"
                       placeholder="예시: 유튜브 레퍼런스 주소, 노션 링크"
                       value={reference}
                       onChange={(e) => setReference(e.target.value)}
-                      className="w-full bg-[#12100f] border border-[#292524] rounded-lg px-4 py-3 text-xs text-stone-200 focus:outline-none focus:border-amber-500 transition font-mono"
+                      className="w-full bg-[#12100f] border border-[#292524] rounded-xl px-4 py-3.5 text-xs text-stone-200 focus:outline-none focus:border-amber-500 transition-all font-mono focus:ring-2 focus:ring-amber-500/20"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="block text-[11px] text-stone-400 font-medium">세부 요청 사항</label>
+                <div className="space-y-2">
+                  <label className="block text-xs text-stone-450 font-bold">세부 기획 요청 사항</label>
                   <textarea
                     rows={4}
-                    placeholder="감성적이고 영화 같은 색감으로 제작해주세요. 자막 폰트는 레트로 분위기가 좋겠습니다."
+                    placeholder="감성적이고 영화 같은 색감으로 제작해주세요. 연출 참고 사항을 편하게 적어주시면 사전 미팅이 수월해집니다."
                     value={request}
                     onChange={(e) => setRequest(e.target.value)}
-                    className="w-full bg-[#12100f] border border-[#292524] rounded-lg px-4 py-3 text-xs text-stone-200 focus:outline-none focus:border-amber-500 transition"
+                    className="w-full bg-[#12100f] border border-[#292524] rounded-xl px-4 py-3.5 text-xs text-stone-200 focus:outline-none focus:border-amber-500 transition-all focus:ring-2 focus:ring-amber-500/20 font-sans"
                   ></textarea>
                 </div>
 
                 {/* Submitting user metadata display */}
                 {currentUser && (
-                  <div className="p-3 bg-stone-900 border border-[#292524] rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 text-[11px] text-stone-400">
+                  <div className="p-4 bg-stone-900 border border-[#292524] rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 text-xs text-stone-400">
                     <div className="space-y-0.5">
-                      <span className="text-stone-500">신청 고객 정보: </span>
+                      <span className="text-stone-500 font-bold">신청 고객 정보: </span>
                       <span className="text-stone-200 font-semibold">{currentUser.name} ({currentUser.email})</span>
                     </div>
                     <div className="space-y-0.5">
-                      <span className="text-stone-500">연락처: </span>
-                      <span className="text-stone-200 font-semibold font-mono">{currentUser.phone}</span>
+                      <span className="text-stone-500 font-bold">비상 연락처: </span>
+                      <span className="text-[#fafaf9] font-semibold font-mono">{currentUser.phone}</span>
                     </div>
                   </div>
                 )}
@@ -339,7 +348,7 @@ export default function Reservation({ currentUser, onOpenAuth, onTabChange }: Re
               {/* Submit triggers */}
               <button
                 type="submit"
-                className="w-full py-4 bg-amber-500 hover:bg-amber-600 text-stone-950 text-xs tracking-wider uppercase font-extrabold rounded-lg transition duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-lg hover:shadow-amber-500/10"
+                className="w-full py-4.5 bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs tracking-widest uppercase font-black rounded-xl transition duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-lg hover:shadow-amber-500/15 border-none active:scale-[0.99]"
               >
                 <span>제작 예약 확정 신청하기</span>
                 <ChevronRight className="w-4 h-4" />

@@ -42,10 +42,10 @@ export default function Header({
           {/* Logo Brand with CheongChun film requested pair */}
           <div 
             onClick={() => handleTabClick('Home')} 
-            className="flex items-center gap-2 cursor-pointer group"
+            className="flex items-center gap-2 cursor-pointer group shrink-0"
           >
-            <Film className="w-5 h-5 text-amber-500 transition-transform duration-500 group-hover:rotate-12" />
-            <span className="font-display text-lg font-bold tracking-widest text-[#fafaf9] group-hover:text-amber-400 transition-colors">
+            <Film className="w-5 h-5 text-amber-500 transition-transform duration-500 group-hover:rotate-12 shrink-0" />
+            <span className="font-display text-sm sm:text-base md:text-lg font-bold tracking-wider text-[#fafaf9] group-hover:text-amber-400 transition-colors whitespace-nowrap">
               CHEONGCHUN FILM
             </span>
           </div>

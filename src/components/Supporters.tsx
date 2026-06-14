@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { saveSupporter } from '../utils/storage';
+import { saveSupporter, saveSupporterApplicationToFirestore } from '../utils/storage';
 import { User, SupporterApplicant } from '../types';
 import { Crown, Sparkles, Send, CheckCircle2, UserCheck, HelpCircle, FileText } from 'lucide-react';
 
@@ -42,7 +42,7 @@ export default function Supporters({ currentUser }: SupportersProps) {
     '서포터즈 공식 정기 피드백 기획 대담회 및 파티 참가'
   ];
 
-  const handleSubmitApplication = (e: React.FormEvent) => {
+  const handleSubmitApplication = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const newApplicant: SupporterApplicant = {
@@ -56,6 +56,13 @@ export default function Supporters({ currentUser }: SupportersProps) {
     };
 
     saveSupporter(newApplicant);
+    
+    try {
+      await saveSupporterApplicationToFirestore(newApplicant);
+    } catch (err) {
+      console.warn("Firestore save deferred, utilizing local storage sync.", err);
+    }
+
     setIsSubmitted(true);
   };
 

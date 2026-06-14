@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { PortfolioItem } from '../types';
-import { getStoredPortfolios } from '../utils/storage';
+import { getStoredPortfolios, fetchPortfoliosFromFirestore } from '../utils/storage';
 import { Film, Image, Presentation, Tv, Clapperboard, Video, Filter, Grid, Calendar, User, Eye, X } from 'lucide-react';
 
 interface PortfolioProps {
@@ -13,7 +14,17 @@ export default function Portfolio({ onTabChange }: PortfolioProps) {
   const [selectedItem, setSelectedItem] = useState<PortfolioItem | null>(null);
 
   useEffect(() => {
+    // Initial optimistic load
     setPortfolios(getStoredPortfolios());
+
+    // Async real-time sync from Firestore
+    fetchPortfoliosFromFirestore().then((dbPortfolios) => {
+      if (dbPortfolios && dbPortfolios.length > 0) {
+        setPortfolios(dbPortfolios);
+      }
+    }).catch((err) => {
+      console.warn("Utilizing synced local storage portfolio backup.", err);
+    });
   }, []);
 
   const categories = ['전체', '이미지 제작', '포스터 제작', '릴스 숏폼', '예고편', '전체 편집'];
@@ -70,51 +81,61 @@ export default function Portfolio({ onTabChange }: PortfolioProps) {
         </div>
 
         {/* Gallery Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredPortfolios.map((item) => (
-            <div
-              key={item.id}
-              onClick={() => setSelectedItem(item)}
-              className="group bg-[#0f0d0c] rounded-xl overflow-hidden border border-[#1c1917] hover:border-amber-500/20 transition-all duration-300 flex flex-col justify-between cursor-pointer shadow-lg hover:shadow-2xl"
-            >
-              {/* Thumbnail Container */}
-              <div className="relative aspect-video w-full overflow-hidden bg-stone-950">
-                <img 
-                  src={item.imageUrl} 
-                  alt={item.title} 
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 group-hover:brightness-90"
-                  referrerPolicy="no-referrer"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0c0a09] via-stone-950/20 to-transparent"></div>
-                <span className="absolute top-3 left-3 bg-[#0c0a09]/90 backdrop-blur border border-[#292524] text-[10px] text-amber-400 px-2.5 py-1 rounded font-mono uppercase tracking-wider">
-                  {item.category}
-                </span>
-              </div>
-
-              {/* Title & Description Body */}
-              <div className="p-5 flex-1 flex flex-col justify-between">
-                <div className="space-y-3">
-                  <h3 className="font-display font-extrabold text-base text-stone-200 group-hover:text-amber-400 transition-colors pointer-events-none line-clamp-1">
-                    {item.title}
-                  </h3>
-                  <p className="text-[11px] text-stone-400 leading-relaxed line-clamp-2 pointer-events-none">
-                    {item.description}
-                  </p>
-                </div>
-
-                <div className="flex items-center justify-between mt-5 pt-3 border-t border-[#1c1917] text-[11px] text-stone-500">
-                  <span className="flex items-center gap-1">
-                    <User className="w-3.5 h-3.5 text-stone-600" />
-                    {item.client || '개인 고객'}
-                  </span>
-                  <span className="flex items-center gap-1 font-mono">
-                    <Calendar className="w-3.5 h-3.5 text-stone-600" />
-                    {item.date || '2026.06'}
+        <motion.div 
+          layout 
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 min-h-[300px]"
+        >
+          <AnimatePresence mode="popLayout">
+            {filteredPortfolios.map((item) => (
+              <motion.div
+                layout
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                transition={{ duration: 0.35, ease: 'easeOut' }}
+                key={item.id}
+                onClick={() => setSelectedItem(item)}
+                className="group bg-[#0f0d0c] rounded-xl overflow-hidden border border-[#1c1917] hover:border-amber-500/20 transition-all duration-300 flex flex-col justify-between cursor-pointer shadow-lg hover:shadow-2xl"
+              >
+                {/* Thumbnail Container */}
+                <div className="relative aspect-video w-full overflow-hidden bg-stone-950">
+                  <img 
+                    src={item.imageUrl} 
+                    alt={item.title} 
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 group-hover:brightness-90"
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0c0a09] via-stone-950/20 to-transparent"></div>
+                  <span className="absolute top-3 left-3 bg-[#0c0a09]/90 backdrop-blur border border-[#292524] text-[10px] text-amber-400 px-2.5 py-1 rounded font-mono uppercase tracking-wider">
+                    {item.category}
                   </span>
                 </div>
-              </div>
-            </div>
-          ))}
+
+                {/* Title & Description Body */}
+                <div className="p-5 flex-1 flex flex-col justify-between">
+                  <div className="space-y-3">
+                    <h3 className="font-display font-extrabold text-base text-stone-200 group-hover:text-amber-400 transition-colors pointer-events-none line-clamp-1">
+                      {item.title}
+                    </h3>
+                    <p className="text-[11px] text-stone-400 leading-relaxed line-clamp-2 pointer-events-none">
+                      {item.description}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-between mt-5 pt-3 border-t border-[#1c1917] text-[11px] text-stone-500">
+                    <span className="flex items-center gap-1">
+                      <User className="w-3.5 h-3.5 text-stone-600" />
+                      {item.client || '개인 고객'}
+                    </span>
+                    <span className="flex items-center gap-1 font-mono">
+                      <Calendar className="w-3.5 h-3.5 text-stone-600" />
+                      {item.date || '2026.06'}
+                    </span>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
 
           {filteredPortfolios.length === 0 && (
             <div className="col-span-full py-16 text-center border border-dashed border-[#292524] rounded-xl bg-[#0f0d0c] text-stone-500">
@@ -123,7 +144,7 @@ export default function Portfolio({ onTabChange }: PortfolioProps) {
               <p className="text-[10px] text-amber-500/75 mt-1">관리자 대시보드에서 마음껏 새로운 사례를 직접 채워보세요!</p>
             </div>
           )}
-        </div>
+        </motion.div>
 
         {/* Pitch Area */}
         <div className="mt-16 bg-gradient-to-r from-[#1c1917]/25 to-[#0c0a09] border border-[#292524] rounded-xl p-8 max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">

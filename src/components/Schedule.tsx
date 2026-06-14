@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ScheduleItem } from '../types';
-import { getStoredSchedules } from '../utils/storage';
+import { getStoredSchedules, fetchSchedulesFromFirestore } from '../utils/storage';
 import { Calendar, ChevronLeft, ChevronRight, BellRing, Sparkles, MessageSquareDot } from 'lucide-react';
 
 export default function Schedule() {
@@ -8,7 +8,17 @@ export default function Schedule() {
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
 
   useEffect(() => {
+    // Optimistic initial load
     setSchedules(getStoredSchedules());
+
+    // Sync from Firestore collections
+    fetchSchedulesFromFirestore().then((dbSchedules) => {
+      if (dbSchedules && dbSchedules.length > 0) {
+        setSchedules(dbSchedules);
+      }
+    }).catch((err) => {
+      console.warn("Utilizing local fallback schedules.", err);
+    });
   }, []);
 
   // For June 2026: 
