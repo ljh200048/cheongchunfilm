@@ -21,15 +21,18 @@ import Auth from './components/Auth';
 import MyPage from './components/MyPage';
 import Admin from './components/Admin';
 
-import { User, ActiveTab } from './types';
+import { User, ActiveTab, Notice } from './types';
 import { getStoredUser, setStoredUser, saveUser } from './utils/storage';
-import { Film, CalendarDays, Sparkles, Sliders } from 'lucide-react';
+import { Film, CalendarDays, Sparkles, Sliders, Megaphone, Search, X } from 'lucide-react';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [activeTab, setActiveTab] = useState<ActiveTab>('Home');
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authType, setAuthType] = useState<'login' | 'register'>('login');
+  const [publicNotices, setPublicNotices] = useState<Notice[]>([]);
+  const [noticeSearchQuery, setNoticeSearchQuery] = useState('');
+  const [selectedNoticeCategory, setSelectedNoticeCategory] = useState('전체');
 
   // Load initial session and synchronous URL routing guard
   useEffect(() => {
@@ -38,6 +41,19 @@ export default function App() {
       setCurrentUser(user);
     }
   }, []);
+
+  useEffect(() => {
+    import('./utils/storage').then(({ fetchNoticesFromFirestore }) => {
+      fetchNoticesFromFirestore()
+        .then(list => {
+          const published = list.filter(n => n.isPublished);
+          setPublicNotices(published);
+        })
+        .catch(err => {
+          console.warn("Could not load notices for main stager", err);
+        });
+    });
+  }, [activeTab, currentUser]);
 
   useEffect(() => {
     const handleUrlRouting = () => {
@@ -151,6 +167,16 @@ export default function App() {
     }
   };
 
+  const filteredNotices = publicNotices.filter((n) => {
+    const matchesCategory = selectedNoticeCategory === '전체' || n.category === selectedNoticeCategory;
+    const searchLower = noticeSearchQuery.toLowerCase().trim();
+    const matchesSearch = !searchLower || 
+      n.title.toLowerCase().includes(searchLower) || 
+      n.content.toLowerCase().includes(searchLower) ||
+      n.category.toLowerCase().includes(searchLower);
+    return matchesCategory && matchesSearch;
+  });
+
   return (
     <div className="min-h-screen bg-[#17120F] text-[#F8F3E8] flex flex-col justify-between film-grain font-sans">
       
@@ -200,6 +226,106 @@ export default function App() {
             </section>
 
             <Schedule />
+            
+            {/* Notices List Section */}
+            {publicNotices.length > 0 && (
+              <section className="bg-[#0f0d0c] py-20 border-b border-[#1c1917]/80 hover:bg-[#12100f] transition-colors duration-300">
+                <div className="max-w-4xl mx-auto px-4">
+                  {/* Header Title with Search bar */}
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 border-b border-[#1c1917]/80 pb-6">
+                    <div className="flex items-center gap-2">
+                      <span className="p-1.5 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded">
+                        <Megaphone className="w-4 h-4 text-amber-400" />
+                      </span>
+                      <h3 className="font-display font-black text-xl tracking-wide text-[#fafaf9]">
+                        새로운 소식 및 공지사항
+                      </h3>
+                    </div>
+
+                    {/* Integrated Search Input Container */}
+                    <div className="relative w-full md:w-80">
+                      <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500 pointer-events-none" />
+                      <input
+                        type="text"
+                        placeholder="공지 검색 (제목, 카테고리, 내용)..."
+                        value={noticeSearchQuery}
+                        onChange={(e) => setNoticeSearchQuery(e.target.value)}
+                        className="w-full bg-[#12100f] hover:bg-[#151211] border border-[#292524] focus:border-amber-500 rounded-full pl-9.5 pr-8.5 py-2 text-xs text-stone-200 placeholder-stone-500 focus:outline-none transition-all duration-200 shadow-inner"
+                      />
+                      {noticeSearchQuery && (
+                        <button
+                          onClick={() => setNoticeSearchQuery('')}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 text-stone-500 hover:text-stone-300 rounded-full transition cursor-pointer"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Category Fast Filters */}
+                  <div className="flex flex-wrap gap-1.5 mb-6">
+                    {['전체', '공지사항', '시즌 오픈', '이벤트', '중요 공지'].map((cat) => (
+                      <button
+                        key={cat}
+                        onClick={() => setSelectedNoticeCategory(cat)}
+                        className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold tracking-wide transition cursor-pointer select-none ${
+                          selectedNoticeCategory === cat
+                            ? 'bg-amber-500 text-stone-950 font-black'
+                            : 'bg-[#12100f] border border-[#292524] text-stone-400 hover:text-[#fafaf9] hover:border-stone-500'
+                        }`}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* List Content */}
+                  <div className="space-y-4">
+                    {filteredNotices.length > 0 ? (
+                      filteredNotices.map((n) => (
+                        <div 
+                          key={n.id}
+                          className="bg-[#12100f] border border-[#1c1917] hover:border-[#292524] rounded-xl p-5 hover:bg-[#151211] transition-all duration-200 flex flex-col sm:flex-row gap-5 items-start justify-between cursor-pointer"
+                          id={`notice-card-${n.id}`}
+                        >
+                          <div className="flex gap-4 items-start overflow-hidden">
+                            {n.imageUrl && (
+                              <img 
+                                src={n.imageUrl} 
+                                alt="" 
+                                className="w-16 h-16 object-cover rounded-lg bg-stone-950 border border-stone-850 shrink-0 shadow-md"
+                                referrerPolicy="no-referrer"
+                              />
+                            )}
+                            <div className="space-y-1.5 overflow-hidden">
+                              <span className="text-[9px] bg-amber-500/10 border border-amber-500/20 py-0.5 px-2 rounded-full text-amber-500 font-bold uppercase tracking-wider font-mono">
+                                {n.category}
+                              </span>
+                              <h4 className="font-bold text-stone-100 text-sm leading-snug">{n.title}</h4>
+                              <p className="text-xs text-stone-400 leading-relaxed font-sans whitespace-pre-wrap">{n.content}</p>
+                            </div>
+                          </div>
+                          
+                          <div className="text-[10px] text-stone-500 font-mono self-end sm:self-start shrink-0">
+                            {new Date(n.createdAt).toLocaleDateString('ko-KR', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })}
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-12 bg-[#12100f] border border-[#1c1917] rounded-xl text-stone-500 space-y-2">
+                        <p className="text-xs font-semibold">🔍 검색 필터 결과가 존재하지 않습니다.</p>
+                        <p className="text-[11px] text-stone-600">검색어를 수정하시거나 다른 분류 탭을 정렬해보세요.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </section>
+            )}
             
             {/* Supporters Banner Block inside Main Pipeline */}
             <section className="bg-[#0c0a09] py-16 border-b border-[#1c1917] text-center space-y-6">

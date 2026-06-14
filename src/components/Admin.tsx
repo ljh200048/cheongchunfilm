@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Reservation, ReservationStatus, SupporterApplicant, ScheduleItem, PortfolioItem } from '../types';
+import { User, Reservation, ReservationStatus, SupporterApplicant, ScheduleItem, PortfolioItem, Notice } from '../types';
 import { 
   getStoredReservations, 
   getStoredSupporters,
@@ -14,22 +14,34 @@ import {
   saveScheduleToFirestore,
   deleteScheduleFromFirestore,
   fetchPortfoliosFromFirestore,
-  savePortfolioToFirestore
+  savePortfolioToFirestore,
+  // NEW helpers
+  fetchNoticesFromFirestore,
+  saveNoticeToFirestore,
+  deleteNoticeFromFirestore,
+  fetchBannersFromFirestore,
+  saveBannerToFirestore,
+  deleteBannerFromFirestore,
+  uploadImageToStorage,
+  BannerItem
 } from '../utils/storage';
 import { 
   ShieldAlert, Calendar, Users, Briefcase, Plus, Trash2, Check, ArrowRight, 
-  RefreshCw, RefreshCcw, ExternalLink, Filter, ClipboardList, Clock, Phone, Mail, FileText
+  RefreshCw, RefreshCcw, ExternalLink, Filter, ClipboardList, Clock, Phone, Mail, FileText,
+  Upload, Image as ImageIcon, Edit3, Megaphone, Eye, EyeOff
 } from 'lucide-react';
 
 export default function Admin() {
   // Admin view inside tab selection
-  const [adminTab, setAdminTab] = useState<'reservations' | 'schedules' | 'supporters' | 'portfolio'>('reservations');
+  const [adminTab, setAdminTab] = useState<'reservations' | 'schedules' | 'supporters' | 'portfolio' | 'notices' | 'images'>('reservations');
   
   // Stored state lists
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [supporters, setSupporters] = useState<SupporterApplicant[]>([]);
   const [schedules, setSchedules] = useState<ScheduleItem[]>([]);
   const [portfolios, setPortfolios] = useState<PortfolioItem[]>([]);
+  const [notices, setNotices] = useState<Notice[]>([]);
+  const [banners, setBanners] = useState<BannerItem[]>([]);
 
   // Loading state
   const [isLoading, setIsLoading] = useState(false);
@@ -49,6 +61,22 @@ export default function Admin() {
   const [portImgUrl, setPortImgUrl] = useState('');
   const [portClient, setPortClient] = useState('');
   const [portDate, setPortDate] = useState('2026.06');
+
+  // Notice Form states
+  const [noticeTitle, setNoticeTitle] = useState('');
+  const [noticeContent, setNoticeContent] = useState('');
+  const [noticeCategory, setNoticeCategory] = useState('공지사항');
+  const [noticeImageUrl, setNoticeImageUrl] = useState('');
+  const [noticeIsPublished, setNoticeIsPublished] = useState(true);
+  const [editingNotice, setEditingNotice] = useState<Notice | null>(null);
+  const [isNoticeUploading, setIsNoticeUploading] = useState(false);
+
+  // Image management helper state
+  const [isBannerUploading, setIsBannerUploading] = useState(false);
+  const [targetNoticeId, setTargetNoticeId] = useState('');
+  const [isNoticeImgUploading, setIsNoticeImgUploading] = useState(false);
+  const [targetPortfolioId, setTargetPortfolioId] = useState('');
+  const [isPortfolioImgUploading, setIsPortfolioImgUploading] = useState(false);
 
   // Load everything
   useEffect(() => {
@@ -91,17 +119,21 @@ export default function Admin() {
       setPortfolios(getStoredPortfolios());
 
       // Async load real-time database from Firestore collections
-      const [resList, supList, schList, portList] = await Promise.all([
+      const [resList, supList, schList, portList, noticeList, bannerList] = await Promise.all([
         fetchProductionApplicationsFromFirestore(),
         fetchSupporterApplicationsFromFirestore(),
         fetchSchedulesFromFirestore(),
-        fetchPortfoliosFromFirestore()
+        fetchPortfoliosFromFirestore(),
+        fetchNoticesFromFirestore(),
+        fetchBannersFromFirestore()
       ]);
 
       if (resList.length > 0) setReservations(resList);
       if (supList.length > 0) setSupporters(supList);
       if (schList.length > 0) setSchedules(schList);
       if (portList.length > 0) setPortfolios(portList);
+      if (noticeList.length > 0) setNotices(noticeList);
+      if (bannerList.length > 0) setBanners(bannerList);
     } catch (e) {
       console.warn("Using offline / local storage backup data for admin hub", e);
     } finally {
@@ -218,6 +250,168 @@ export default function Admin() {
     }
   };
 
+  // --- NOTICE CONSOLE MANAGEMENT ---
+  const handleSaveNotice = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!noticeTitle || !noticeContent) return;
+
+    const noticeId = editingNotice?.id || 'notice_' + Date.now();
+    const newNotice: Notice = {
+      id: noticeId,
+      title: noticeTitle,
+      content: noticeContent,
+      category: noticeCategory,
+      imageUrl: noticeImageUrl,
+      isPublished: noticeIsPublished,
+      createdAt: editingNotice?.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    // Optimistically update lists
+    setNotices(prev => {
+      const exists = prev.some(n => n.id === noticeId);
+      if (exists) {
+        return prev.map(n => n.id === noticeId ? newNotice : n);
+      } else {
+        return [newNotice, ...prev];
+      }
+    });
+
+    // Reset Form fields
+    setNoticeTitle('');
+    setNoticeContent('');
+    setNoticeCategory('공지사항');
+    setNoticeImageUrl('');
+    setNoticeIsPublished(true);
+    setEditingNotice(null);
+
+    try {
+      await saveNoticeToFirestore(newNotice);
+      alert('공지글이 성공적으로 전산 등록 완료되었습니다!');
+    } catch (err) {
+      alert('공지글 등록 중 일시적 지연이 발생했으나 임시 로컬 저장 완료되었습니다.');
+    } finally {
+      const freshNotices = await fetchNoticesFromFirestore();
+      setNotices(freshNotices);
+    }
+  };
+
+  const handleDeleteNotice = async (id: string) => {
+    if (window.confirm('정말로 이 공지사항을 삭제처리하시겠습니까?')) {
+      setNotices(prev => prev.filter(n => n.id !== id));
+      try {
+        await deleteNoticeFromFirestore(id);
+        alert('공지사항이 전산에서 완전히 영구 삭제 처리되었습니다.');
+      } catch (err) {
+        alert('삭제 처리 중 실패가 발생했습니다.');
+      } finally {
+        const freshNotices = await fetchNoticesFromFirestore();
+        setNotices(freshNotices);
+      }
+    }
+  };
+
+  const handleEditNoticeSetup = (notice: Notice) => {
+    setEditingNotice(notice);
+    setNoticeTitle(notice.title);
+    setNoticeContent(notice.content);
+    setNoticeCategory(notice.category);
+    setNoticeImageUrl(notice.imageUrl || '');
+    setNoticeIsPublished(notice.isPublished);
+  };
+
+  // --- IMAGE & STORAGE BANNER MANAGEMENT CONTROLS ---
+  const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsBannerUploading(true);
+    try {
+      const downloadUrl = await uploadImageToStorage(file, 'banners');
+      const newBanner: BannerItem = {
+        id: 'banner_' + Date.now(),
+        imageUrl: downloadUrl,
+        createdAt: new Date().toISOString()
+      };
+
+      await saveBannerToFirestore(newBanner);
+      setBanners(prev => [...prev, newBanner]);
+      alert('이미지가 변경되었습니다.');
+    } catch (err) {
+      console.error(err);
+      alert('이미지 변경 중 오류가 발생했습니다.');
+    } finally {
+      setIsBannerUploading(false);
+    }
+  };
+
+  const handleDeleteBanner = async (id: string) => {
+    if (window.confirm('해당 명품 시네마틱 홈배너를 완전히 복원에서 제외합니까?')) {
+      setBanners(prev => prev.filter(b => b.id !== id));
+      try {
+        await deleteBannerFromFirestore(id);
+        alert('홈배너 사진이 제거 배포 완료되었습니다.');
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  };
+
+  const handleNoticeImgUpload = async (e: React.ChangeEvent<HTMLInputElement>, noticeId: string) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const notice = notices.find(n => n.id === noticeId);
+    if (!notice) return;
+
+    setIsNoticeImgUploading(true);
+    try {
+      const downloadUrl = await uploadImageToStorage(file, 'notices');
+      const updatedNotice: Notice = {
+        ...notice,
+        imageUrl: downloadUrl,
+        updatedAt: new Date().toISOString()
+      };
+
+      await saveNoticeToFirestore(updatedNotice);
+      setNotices(prev => prev.map(n => n.id === noticeId ? updatedNotice : n));
+      alert('이미지가 변경되었습니다.');
+    } catch (err) {
+      console.error(err);
+      alert('이미지 변경 중 오류가 발생했습니다.');
+    } finally {
+      setIsNoticeImgUploading(false);
+      setTargetNoticeId('');
+    }
+  };
+
+  const handlePortfolioImgUpload = async (e: React.ChangeEvent<HTMLInputElement>, portfolioId: string) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const port = portfolios.find(p => p.id === portfolioId);
+    if (!port) return;
+
+    setIsPortfolioImgUploading(true);
+    try {
+      const downloadUrl = await uploadImageToStorage(file, 'portfolios');
+      const updatedPortfolio: PortfolioItem = {
+        ...port,
+        imageUrl: downloadUrl
+      };
+
+      await savePortfolioToFirestore(updatedPortfolio);
+      setPortfolios(prev => prev.map(p => p.id === portfolioId ? updatedPortfolio : p));
+      alert('이미지가 변경되었습니다.');
+    } catch (err) {
+      console.error(err);
+      alert('이미지 변경 중 오류가 발생했습니다.');
+    } finally {
+      setIsPortfolioImgUploading(false);
+      setTargetPortfolioId('');
+    }
+  };
+
   const getStatusTagClass = (status: ReservationStatus) => {
     switch (status) {
       case '대기': return 'bg-amber-500/10 border border-amber-500/30 text-amber-500';
@@ -295,6 +489,22 @@ export default function Admin() {
             }`}
           >
             📂 포트폴리오 신규 배포 ({portfolios.length})
+          </button>
+          <button
+            onClick={() => setAdminTab('notices')}
+            className={`px-4.5 py-2.5 rounded text-xs font-semibold tracking-wide transition cursor-pointer ${
+              adminTab === 'notices' ? 'bg-amber-500 text-[#0c0a09]' : 'bg-[#12100f] border border-[#292524] text-stone-400 hover:text-white'
+            }`}
+          >
+            📢 공지사항 전산 관리 ({notices.length})
+          </button>
+          <button
+            onClick={() => setAdminTab('images')}
+            className={`px-4.5 py-2.5 rounded text-xs font-semibold tracking-wide transition cursor-pointer ${
+              adminTab === 'images' ? 'bg-amber-500 text-[#0c0a09]' : 'bg-[#12100f] border border-[#292524] text-stone-400 hover:text-white'
+            }`}
+          >
+            🖼️ 홈페이지 이미지 관리
           </button>
         </div>
 
@@ -701,6 +911,383 @@ export default function Admin() {
               </p>
             </div>
 
+          </div>
+        )}
+
+        {adminTab === 'notices' && (
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 animate-fadeIn">
+            {/* Col 1 Form */}
+            <div className="md:col-span-5 bg-[#0f0d0c] border border-[#292524] rounded-2xl p-6 shadow-xl space-y-4">
+              <h3 className="font-display font-black text-sm uppercase tracking-wide border-b border-[#1c1917] pb-3 text-stone-300">
+                {editingNotice ? '공지사항 수정' : '새 공지사항 작성'}
+              </h3>
+
+              <form onSubmit={handleSaveNotice} className="space-y-4 text-xs">
+                <div className="space-y-1">
+                  <label className="text-stone-400 font-semibold text-[11px]">공지 분야 (카테고리)</label>
+                  <select
+                    value={noticeCategory}
+                    onChange={(e) => setNoticeCategory(e.target.value)}
+                    className="w-full bg-[#12100f] border border-[#292524] rounded p-2.5 text-stone-200 focus:outline-none focus:border-amber-500"
+                  >
+                    <option value="공지사항">공지사항 📢</option>
+                    <option value="시즌 오픈">시즌 오픈 🌸</option>
+                    <option value="이벤트">이벤트 🎁</option>
+                    <option value="중요 공지">중요 공지 ⭐</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-stone-400 font-semibold text-[11px]">제목</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="공지글 제목을 입력해주세요"
+                    value={noticeTitle}
+                    onChange={(e) => setNoticeTitle(e.target.value)}
+                    className="w-full bg-[#12100f] border border-[#292524] rounded p-2.5 text-stone-200 focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-stone-400 font-semibold text-[11px]">내용</label>
+                  <textarea
+                    rows={6}
+                    required
+                    placeholder="공지글 본문을 작성해주세요."
+                    value={noticeContent}
+                    onChange={(e) => setNoticeContent(e.target.value)}
+                    className="w-full bg-[#12100f] border border-[#292524] rounded p-2.5 text-stone-200 leading-relaxed focus:outline-none focus:border-amber-500"
+                  ></textarea>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-stone-400 font-semibold text-[11px]">대표 이미지 주소 (선택)</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="url"
+                      placeholder="https://..."
+                      value={noticeImageUrl}
+                      onChange={(e) => setNoticeImageUrl(e.target.value)}
+                      className="flex-grow bg-[#12100f] border border-[#292524] rounded p-2.5 text-stone-200 font-mono focus:outline-none focus:border-amber-500"
+                    />
+                    <div className="relative shrink-0">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          setIsNoticeUploading(true);
+                          try {
+                            const url = await uploadImageToStorage(file, 'notices');
+                            setNoticeImageUrl(url);
+                            alert('이미지가 업로드되었습니다.');
+                          } catch (err) {
+                            alert('업로드 중 오류 발생!');
+                          } finally {
+                            setIsNoticeUploading(false);
+                          }
+                        }}
+                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                      />
+                      <button 
+                        type="button"
+                        className="px-3.5 py-2.5 bg-stone-850 hover:bg-stone-700 text-stone-300 rounded flex items-center gap-1 cursor-pointer text-xs transition"
+                      >
+                        <Upload className="w-3.5 h-3.5" />
+                        {isNoticeUploading ? '업로드...' : '파일'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 py-2">
+                  <input
+                    type="checkbox"
+                    id="noticeIsPublished"
+                    checked={noticeIsPublished}
+                    onChange={(e) => setNoticeIsPublished(e.target.checked)}
+                    className="w-4 h-4 rounded text-amber-500 bg-[#12100f] border border-[#292524]"
+                  />
+                  <label htmlFor="noticeIsPublished" className="text-stone-300 select-none cursor-pointer text-[11px]">
+                    사용자 전산에 즉시 공개 배포 (isPublished)
+                  </label>
+                </div>
+
+                <div className="flex gap-2">
+                  {editingNotice && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingNotice(null);
+                        setNoticeTitle('');
+                        setNoticeContent('');
+                        setNoticeCategory('공지사항');
+                        setNoticeImageUrl('');
+                        setNoticeIsPublished(true);
+                      }}
+                      className="flex-grow py-2.5 bg-stone-850 hover:bg-stone-700 text-stone-300 font-bold rounded shadow transition cursor-pointer"
+                    >
+                      취소
+                    </button>
+                  )}
+                  <button
+                    type="submit"
+                    className="flex-grow py-2.5 bg-amber-500 hover:bg-amber-600 text-stone-900 font-bold rounded shadow transition cursor-pointer"
+                  >
+                    {editingNotice ? '공지 수정 완료' : '공지 즉시 배포 등록'}
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            {/* Col 2 Notice List */}
+            <div className="md:col-span-7 bg-[#0f0d0c] border border-[#292524] rounded-2xl p-6 shadow-xl">
+              <h3 className="font-display font-black text-sm uppercase tracking-wide border-b border-[#1c1917] pb-3 mb-4 text-stone-400">
+                작성된 공지방 목록 ({notices.length})
+              </h3>
+
+              <div className="space-y-3 max-h-[550px] overflow-y-auto pr-1">
+                {notices.length === 0 ? (
+                  <p className="text-stone-500 text-xs text-center py-10">작성된 공지글이 없습니다.</p>
+                ) : (
+                  notices.map((n) => (
+                    <div
+                      key={n.id}
+                      className="bg-[#12100f] border border-[#1c1917] rounded-lg p-3 text-xs flex gap-3 items-start justify-between"
+                    >
+                      <div className="flex gap-3 overflow-hidden">
+                        {n.imageUrl && (
+                          <img
+                            src={n.imageUrl}
+                            alt=""
+                            className="w-14 h-14 object-cover rounded bg-stone-950 shrink-0 border border-stone-800"
+                            referrerPolicy="no-referrer"
+                          />
+                        )}
+                        <div className="space-y-1 overflow-hidden">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="text-[10px] bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded text-amber-500 font-bold">
+                              {n.category}
+                            </span>
+                            {n.isPublished ? (
+                              <span className="text-[9px] bg-green-500/10 text-green-400 border border-green-500/20 px-1.5 py-0.5 rounded flex items-center gap-0.5 font-bold">
+                                <Eye className="w-2.5 h-2.5" /> 공개 중
+                              </span>
+                            ) : (
+                              <span className="text-[9px] bg-stone-800 text-stone-500 border border-stone-700/50 px-1.5 py-0.5 rounded flex items-center gap-0.5 font-bold">
+                                <EyeOff className="w-2.5 h-2.5" /> 비공개
+                              </span>
+                            )}
+                          </div>
+                          <h4 className="font-bold text-stone-200 truncate">{n.title}</h4>
+                          <p className="text-[10px] text-stone-400 line-clamp-2 leading-relaxed">{n.content}</p>
+                          <p className="text-[9px] text-stone-500 font-mono">
+                            {new Date(n.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-1 shrink-0">
+                        <button
+                          onClick={() => handleEditNoticeSetup(n)}
+                          className="p-1.5 bg-stone-800/80 hover:bg-stone-750 border border-stone-700/50 text-amber-500 hover:text-amber-400 rounded transition cursor-pointer"
+                          title="수정하기"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteNotice(n.id)}
+                          className="p-1.5 bg-stone-800/80 hover:bg-[#291312] border border-stone-700/50 text-red-400 hover:text-red-300 rounded transition cursor-pointer"
+                          title="삭제하기"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {adminTab === 'images' && (
+          <div className="space-y-8 animate-fadeIn">
+            {/* 1. 홈 배너 최적 관리 */}
+            <div className="bg-[#0f0d0c] border border-[#292524] rounded-2xl p-6 shadow-xl">
+              <div className="flex items-center justify-between border-b border-[#1c1917] pb-3 mb-5">
+                <div className="flex items-center gap-2">
+                  <ImageIcon className="w-4 h-4 text-amber-500" />
+                  <h3 className="font-display font-black text-sm uppercase tracking-wide text-stone-300">
+                    홈 배너 이미지 관리 (Storage 'banners' 폴더 저장)
+                  </h3>
+                </div>
+                
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    disabled={isBannerUploading}
+                    onChange={handleBannerUpload}
+                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full disabled:cursor-not-allowed"
+                  />
+                  <button
+                    disabled={isBannerUploading}
+                    className="px-4.5 py-2 bg-amber-500 hover:bg-amber-450 disabled:bg-stone-800 disabled:text-stone-500 text-stone-950 text-xs font-bold rounded flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Upload className="w-4 h-4" />
+                    {isBannerUploading ? '업로드 중...' : '신규 배너 이미지 파일 추가 및 변경'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Display list of active banners */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {banners.length === 0 ? (
+                  <div className="sm:col-span-3 text-center py-10 bg-[#12100f] rounded-xl border border-[#1c1917]/50 text-xs text-stone-500">
+                    가장 최신의 홈 배너가 없습니다. 업로드해주시면 Unsplash 기본 이미지를 오버라이딩합니다! (최대 3개 동시 회전지원)
+                  </div>
+                ) : (
+                  banners.map((b, idx) => (
+                    <div key={b.id} className="relative group rounded-xl overflow-hidden border border-stone-800 bg-stone-950 aspect-video">
+                      <img 
+                        src={b.imageUrl} 
+                        alt="" 
+                        className="w-full h-full object-cover" 
+                        referrerPolicy="no-referrer"
+                      />
+                      <div className="absolute inset-0 bg-stone-950/45 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => handleDeleteBanner(b.id)}
+                          className="bg-red-500 hover:bg-red-650 text-[#0c0a09] font-bold py-1.5 px-3 rounded text-xs transition cursor-pointer shadow"
+                        >
+                          삭제하기
+                        </button>
+                      </div>
+                      <span className="absolute bottom-2.5 left-2.5 bg-[#0c0a09]/80 border border-stone-800 px-2 py-0.5 rounded text-[9px] font-mono text-stone-400">
+                        배너 SCENE 0{idx + 1}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* 2. 공지 대표 이미지 변경 */}
+            <div className="bg-[#0f0d0c] border border-[#292524] rounded-2xl p-6 shadow-xl">
+              <div className="flex items-center gap-2 border-b border-[#1c1917] pb-3 mb-5">
+                <Megaphone className="w-4 h-4 text-amber-500" />
+                <h3 className="font-display font-black text-sm uppercase tracking-wide text-stone-300">
+                  공지글 대표 이미지 즉시 변경 (Storage 'notices' 폴더 저장)
+                </h3>
+              </div>
+
+              <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1">
+                {notices.length === 0 ? (
+                  <p className="text-stone-500 text-xs text-center py-6">이미지를 등록할 공지글이 먼저 있어야 합니다.</p>
+                ) : (
+                  notices.map((n) => (
+                    <div 
+                      key={n.id}
+                      className="bg-[#12100f] border border-[#1c1917] rounded-lg p-3 text-xs flex items-center justify-between gap-4"
+                    >
+                      <div className="flex items-center gap-3 overflow-hidden">
+                        <img 
+                          src={n.imageUrl || 'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=200&auto=format&fit=crop&q=80'} 
+                          alt="" 
+                          className="w-12 h-12 object-cover rounded bg-stone-950 border border-stone-800 shrink-0" 
+                          referrerPolicy="no-referrer"
+                        />
+                        <div className="space-y-0.5 overflow-hidden">
+                          <span className="text-[9px] text-amber-500 font-bold block">{n.category}</span>
+                          <h4 className="font-bold text-stone-200 truncate">{n.title}</h4>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 shrink-0">
+                        {targetNoticeId === n.id && isNoticeImgUploading && (
+                          <span className="text-[11px] text-amber-500 font-bold animate-pulse font-mono shrink-0">업로드 중...</span>
+                        )}
+                        <div className="relative">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              setTargetNoticeId(n.id);
+                              handleNoticeImgUpload(e, n.id);
+                            }}
+                            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                          />
+                          <button className="flex items-center gap-1 bg-stone-850 hover:bg-stone-700 text-stone-300 px-3 py-1.5 text-xs rounded border border-stone-700/50 transition cursor-pointer">
+                            <Upload className="w-3.5 h-3.5" />
+                            이미지 파일로 교체
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* 3. 필름챕 썸네일 변경 */}
+            <div className="bg-[#0f0d0c] border border-[#292524] rounded-2xl p-6 shadow-xl">
+              <div className="flex items-center gap-2 border-b border-[#1c1917] pb-3 mb-5">
+                <Briefcase className="w-4 h-4 text-amber-500" />
+                <h3 className="font-display font-black text-sm uppercase tracking-wide text-stone-300">
+                  작업사례(필름챕) 썸네일 교체 (Storage 'portfolios' 폴더 저장)
+                </h3>
+              </div>
+
+              <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1">
+                {portfolios.length === 0 ? (
+                  <p className="text-stone-500 text-xs text-center py-6">이미지를 등록할 포트폴리오 프로젝트가 먼저 있어야 합니다.</p>
+                ) : (
+                  portfolios.map((p) => (
+                    <div 
+                      key={p.id}
+                      className="bg-[#12100f] border border-[#1c1917] rounded-lg p-3 text-xs flex items-center justify-between gap-4"
+                    >
+                      <div className="flex items-center gap-3 overflow-hidden">
+                        <img 
+                          src={p.imageUrl} 
+                          alt="" 
+                          className="w-12 h-12 object-cover rounded bg-stone-950 border border-stone-800 shrink-0" 
+                          referrerPolicy="no-referrer"
+                        />
+                        <div className="space-y-0.5 overflow-hidden">
+                          <span className="text-[9px] text-amber-500 font-bold block">{p.category}</span>
+                          <h4 className="font-bold text-stone-200 truncate">{p.title}</h4>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 shrink-0">
+                        {targetPortfolioId === p.id && isPortfolioImgUploading && (
+                          <span className="text-[11px] text-amber-500 font-bold animate-pulse font-mono shrink-0">업로드 중...</span>
+                        )}
+                        <div className="relative">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              setTargetPortfolioId(p.id);
+                              handlePortfolioImgUpload(e, p.id);
+                            }}
+                            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                          />
+                          <button className="flex items-center gap-1 bg-stone-850 hover:bg-stone-700 text-stone-300 px-3 py-1.5 text-xs rounded border border-stone-700/50 transition cursor-pointer">
+                            <Upload className="w-3.5 h-3.5" />
+                            썸네일 이미지 교체
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
           </div>
         )}
 

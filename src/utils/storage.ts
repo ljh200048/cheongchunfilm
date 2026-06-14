@@ -1,6 +1,7 @@
 import { collection, doc, setDoc, deleteDoc, getDocs } from 'firebase/firestore';
-import { db, auth } from '../firebase';
-import { User, Reservation, SupporterApplicant, ScheduleItem, PortfolioItem } from '../types';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, auth, storage } from '../firebase';
+import { User, Reservation, SupporterApplicant, ScheduleItem, PortfolioItem, Notice } from '../types';
 import { INITIAL_PORTFOLIOS, INITIAL_SCHEDULES } from '../data';
 
 // Firestore error logging & diagnostics as mandated by Firebase skill instructions
@@ -212,7 +213,8 @@ const PATHS = {
   INQUIRIES: 'inquiries',
   NOTICES: 'notices',
   PORTFOLIOS: 'portfolios',
-  SCHEDULES: 'schedules'
+  SCHEDULES: 'schedules',
+  BANNERS: 'banners'
 };
 
 // 1. 제작 신청 (productionApplications / Reservations)
@@ -318,43 +320,157 @@ export async function saveInquiryToFirestore(inquiry: InquiryPayload): Promise<v
   }
 }
 
-// 4. 공지방 (notices)
-export interface NoticePayload {
-  id: string;
-  title: string;
-  content: string;
-  author: string;
-  createdAt: string;
-}
-
-export async function fetchNoticesFromFirestore(): Promise<NoticePayload[]> {
+// 4. 공지방 (notices) - Converted to conform with title, content, category, imageUrl, isPublished, createdAt, updatedAt
+export async function fetchNoticesFromFirestore(): Promise<Notice[]> {
   try {
     const qSnap = await getDocs(collection(db, PATHS.NOTICES));
-    const items: NoticePayload[] = [];
+    const items: Notice[] = [];
     qSnap.forEach((doc) => {
-      items.push({ id: doc.id, ...doc.data() } as NoticePayload);
+      items.push({ id: doc.id, ...doc.data() } as Notice);
     });
+    // Sort by createdAt in descending order (latest first)
+    items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    safeLocalStorage.setItem('cf_notices', JSON.stringify(items));
     return items;
   } catch (error) {
-    console.warn("Using public mock notices due to offline state or Firestore initialization.");
+    console.warn("Could not fetch notices from Firestore, resolving from local memory.", error);
+    try {
+      const cached = safeLocalStorage.getItem('cf_notices');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        parsed.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        return parsed;
+      }
+    } catch {}
     return [
       {
         id: "notice_1",
         title: "청춘필름 6월 기획 시즌 오픈 공지",
         content: "여름 무대의 아날로그 포스터 기획 및 숏폼 릴스 촬영 사전 미팅 접수가 조기 마감될 수 있습니다. 필요하신 날짜를 선점해주세요.",
-        author: "프로듀서 이재호",
-        createdAt: "2026-06-01T10:00:00Z"
+        category: "공지사항",
+        imageUrl: "",
+        isPublished: true,
+        createdAt: "2026-06-01T10:00:00Z",
+        updatedAt: "2026-06-01T10:00:00Z"
       }
     ];
   }
 }
 
-export async function saveNoticeToFirestore(notice: NoticePayload): Promise<void> {
+export async function saveNoticeToFirestore(notice: Notice): Promise<void> {
   const docRef = doc(db, PATHS.NOTICES, notice.id);
   try {
     await setDoc(docRef, notice);
+    // Sync local storage
+    try {
+      const cached = safeLocalStorage.getItem('cf_notices');
+      let list: Notice[] = cached ? JSON.parse(cached) : [];
+      const idx = list.findIndex(n => n.id === notice.id);
+      if (idx > -1) {
+        list[idx] = notice;
+      } else {
+        list.unshift(notice);
+      }
+      safeLocalStorage.setItem('cf_notices', JSON.stringify(list));
+    } catch {}
   } catch (error) {
     handleFirestoreError(error, OperationType.WRITE, `${PATHS.NOTICES}/${notice.id}`);
+  }
+}
+
+export async function deleteNoticeFromFirestore(id: string): Promise<void> {
+  const docRef = doc(db, PATHS.NOTICES, id);
+  try {
+    await deleteDoc(docRef);
+    // Sync local storage
+    try {
+      const cached = safeLocalStorage.getItem('cf_notices');
+      if (cached) {
+        let list: Notice[] = JSON.parse(cached);
+        list = list.filter(n => n.id !== id);
+        safeLocalStorage.setItem('cf_notices', JSON.stringify(list));
+      }
+    } catch {}
+  } catch (error) {
+    handleFirestoreError(error, OperationType.DELETE, `${PATHS.NOTICES}/${id}`);
+  }
+}
+
+// 4-b. 홈 배너 및 이미지 보관함 (banners)
+export interface BannerItem {
+  id: string;
+  imageUrl: string;
+  createdAt: string;
+}
+
+export async function fetchBannersFromFirestore(): Promise<BannerItem[]> {
+  try {
+    const qSnap = await getDocs(collection(db, PATHS.BANNERS));
+    const items: BannerItem[] = [];
+    qSnap.forEach((doc) => {
+      items.push({ id: doc.id, ...doc.data() } as BannerItem);
+    });
+    items.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    safeLocalStorage.setItem('cf_banners', JSON.stringify(items));
+    return items;
+  } catch (error) {
+    console.warn("Could not fetch banners from Firestore", error);
+    try {
+      const cached = safeLocalStorage.getItem('cf_banners');
+      if (cached) return JSON.parse(cached);
+    } catch {}
+    return [];
+  }
+}
+
+export async function saveBannerToFirestore(banner: BannerItem): Promise<void> {
+  const docRef = doc(db, PATHS.BANNERS, banner.id);
+  try {
+    await setDoc(docRef, banner);
+    try {
+      const cached = safeLocalStorage.getItem('cf_banners');
+      let list: BannerItem[] = cached ? JSON.parse(cached) : [];
+      const idx = list.findIndex(b => b.id === banner.id);
+      if (idx > -1) {
+        list[idx] = banner;
+      } else {
+        list.push(banner);
+      }
+      safeLocalStorage.setItem('cf_banners', JSON.stringify(list));
+    } catch {}
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, `${PATHS.BANNERS}/${banner.id}`);
+  }
+}
+
+export async function deleteBannerFromFirestore(id: string): Promise<void> {
+  const docRef = doc(db, PATHS.BANNERS, id);
+  try {
+    await deleteDoc(docRef);
+    try {
+      const cached = safeLocalStorage.getItem('cf_banners');
+      if (cached) {
+        let list: BannerItem[] = JSON.parse(cached);
+        list = list.filter(b => b.id !== id);
+        safeLocalStorage.setItem('cf_banners', JSON.stringify(list));
+      }
+    } catch {}
+  } catch (error) {
+    handleFirestoreError(error, OperationType.DELETE, `${PATHS.BANNERS}/${id}`);
+  }
+}
+
+// 4-c. 이미지 파일 Storage 업로드
+export async function uploadImageToStorage(file: File, folder: string): Promise<string> {
+  try {
+    const fileName = `${Date.now()}_${file.name}`;
+    const storageRef = ref(storage, `${folder}/${fileName}`);
+    const snapshot = await uploadBytes(storageRef, file);
+    const downloadUrl = await getDownloadURL(snapshot.ref);
+    return downloadUrl;
+  } catch (error) {
+    console.error("Firebase Storage Upload Error: ", error);
+    throw error;
   }
 }
 

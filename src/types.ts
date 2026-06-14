@@ -52,4 +52,15 @@ export interface PortfolioItem {
   date?: string;
 }
 
+export interface Notice {
+  id: string;
+  title: string;
+  content: string;
+  category: string;
+  imageUrl?: string;
+  isPublished: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export type ActiveTab = 'Home' | 'Service' | 'Portfolio' | 'Reservation' | 'Schedule' | 'Supporters' | 'MyPage' | 'Admin';
