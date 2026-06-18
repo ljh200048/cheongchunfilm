@@ -68,6 +68,7 @@ export default function Admin() {
   const [noticeCategory, setNoticeCategory] = useState('공지사항');
   const [noticeImageUrl, setNoticeImageUrl] = useState('');
   const [noticeIsPublished, setNoticeIsPublished] = useState(true);
+  const [noticeIsPinned, setNoticeIsPinned] = useState(false);
   const [editingNotice, setEditingNotice] = useState<Notice | null>(null);
   const [isNoticeUploading, setIsNoticeUploading] = useState(false);
 
@@ -263,6 +264,7 @@ export default function Admin() {
       category: noticeCategory,
       imageUrl: noticeImageUrl,
       isPublished: noticeIsPublished,
+      isPinned: noticeIsPinned,
       createdAt: editingNotice?.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
@@ -283,6 +285,7 @@ export default function Admin() {
     setNoticeCategory('공지사항');
     setNoticeImageUrl('');
     setNoticeIsPublished(true);
+    setNoticeIsPinned(false);
     setEditingNotice(null);
 
     try {
@@ -318,6 +321,7 @@ export default function Admin() {
     setNoticeCategory(notice.category);
     setNoticeImageUrl(notice.imageUrl || '');
     setNoticeIsPublished(notice.isPublished);
+    setNoticeIsPinned(notice.isPinned || false);
   };
 
   // --- IMAGE & STORAGE BANNER MANAGEMENT CONTROLS ---
@@ -1002,17 +1006,32 @@ export default function Admin() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 py-2">
-                  <input
-                    type="checkbox"
-                    id="noticeIsPublished"
-                    checked={noticeIsPublished}
-                    onChange={(e) => setNoticeIsPublished(e.target.checked)}
-                    className="w-4 h-4 rounded text-amber-500 bg-[#12100f] border border-[#292524]"
-                  />
-                  <label htmlFor="noticeIsPublished" className="text-stone-300 select-none cursor-pointer text-[11px]">
-                    사용자 전산에 즉시 공개 배포 (isPublished)
-                  </label>
+                <div className="flex flex-col gap-2 py-2">
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      id="noticeIsPublished"
+                      checked={noticeIsPublished}
+                      onChange={(e) => setNoticeIsPublished(e.target.checked)}
+                      className="w-4 h-4 rounded text-amber-500 bg-[#12100f] border border-[#292524]"
+                    />
+                    <label htmlFor="noticeIsPublished" className="text-stone-300 select-none cursor-pointer text-[11px]">
+                      사용자 전산에 즉시 공개 배포 (isPublished)
+                    </label>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      id="noticeIsPinned"
+                      checked={noticeIsPinned}
+                      onChange={(e) => setNoticeIsPinned(e.target.checked)}
+                      className="w-4 h-4 rounded text-amber-500 bg-[#12100f] border border-[#292524]"
+                    />
+                    <label htmlFor="noticeIsPinned" className="text-stone-300 select-none cursor-pointer text-[11px]">
+                      📌 모든 화면 최상단 공지 배너로 지정 (isPinned)
+                    </label>
+                  </div>
                 </div>
 
                 <div className="flex gap-2">
@@ -1026,6 +1045,7 @@ export default function Admin() {
                         setNoticeCategory('공지사항');
                         setNoticeImageUrl('');
                         setNoticeIsPublished(true);
+                        setNoticeIsPinned(false);
                       }}
                       className="flex-grow py-2.5 bg-stone-850 hover:bg-stone-700 text-stone-300 font-bold rounded shadow transition cursor-pointer"
                     >
@@ -1078,6 +1098,11 @@ export default function Admin() {
                             ) : (
                               <span className="text-[9px] bg-stone-800 text-stone-500 border border-stone-700/50 px-1.5 py-0.5 rounded flex items-center gap-0.5 font-bold">
                                 <EyeOff className="w-2.5 h-2.5" /> 비공개
+                              </span>
+                            )}
+                            {n.isPinned && (
+                              <span className="text-[9px] bg-amber-500/10 text-amber-500 border border-amber-500/20 px-1.5 py-0.5 rounded flex items-center gap-0.5 font-bold">
+                                📌 상단 고정
                               </span>
                             )}
                           </div>

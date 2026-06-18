@@ -33,6 +33,7 @@ export default function App() {
   const [publicNotices, setPublicNotices] = useState<Notice[]>([]);
   const [noticeSearchQuery, setNoticeSearchQuery] = useState('');
   const [selectedNoticeCategory, setSelectedNoticeCategory] = useState('전체');
+  const [selectedPinnedModalNotice, setSelectedPinnedModalNotice] = useState<Notice | null>(null);
 
   // Load initial session and synchronous URL routing guard
   useEffect(() => {
@@ -177,9 +178,49 @@ export default function App() {
     return matchesCategory && matchesSearch;
   });
 
+  const pinnedNotice = publicNotices
+    .filter(n => n.isPinned)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+
   return (
     <div className="min-h-screen bg-[#17120F] text-[#F8F3E8] flex flex-col justify-between film-grain font-sans">
       
+      {/* Pinned Top Notice Banner */}
+      {pinnedNotice && (
+        <div 
+          onClick={() => setSelectedPinnedModalNotice(pinnedNotice)}
+          className="bg-[#12100f] border-b border-[#292524] text-stone-300 py-2.5 px-4 text-xs hover:bg-[#1a1715] transition duration-200 cursor-pointer select-none relative z-50 animate-fadeIn"
+          id="pinned-top-banner"
+        >
+          <div className="max-w-6xl mx-auto w-full flex items-center justify-between gap-3 overflow-hidden">
+            <div className="flex items-center gap-2 overflow-hidden w-full">
+              <span className="shrink-0 bg-amber-500/10 border border-amber-500/30 text-amber-500 px-2 py-0.5 rounded-full text-[9px] font-bold tracking-wider uppercase font-mono flex items-center gap-0.5 animate-pulse">
+                📌 TOP
+              </span>
+              <span className="shrink-0 text-[10px] text-stone-400 font-bold border-r border-[#292524] pr-2.5">
+                {pinnedNotice.category}
+              </span>
+              <div className="overflow-hidden text-ellipsis flex-grow whitespace-nowrap">
+                <span className="font-extrabold text-stone-100 hover:text-amber-400 mr-2">
+                  {pinnedNotice.title}
+                </span>
+                <span className="text-stone-400 font-sans hidden sm:inline text-[11.5px] truncate">
+                  - {pinnedNotice.content}
+                </span>
+                <span className="text-stone-400 font-sans inline sm:hidden text-[11.5px] truncate">
+                  - {pinnedNotice.content}
+                </span>
+              </div>
+            </div>
+            
+            <div className="shrink-0 flex items-center gap-1 text-[10px] text-amber-500/80 hover:text-amber-400 font-bold ml-2">
+              <span className="hidden md:inline">자세히 보기</span>
+              <span>⟶</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header bar */}
       <Header 
         currentUser={currentUser}
@@ -229,7 +270,7 @@ export default function App() {
             
             {/* Notices List Section */}
             {publicNotices.length > 0 && (
-              <section className="bg-[#0f0d0c] py-20 border-b border-[#1c1917]/80 hover:bg-[#12100f] transition-colors duration-300">
+              <section id="notices-section" className="bg-[#0f0d0c] py-20 border-b border-[#1c1917]/80 hover:bg-[#12100f] transition-colors duration-300">
                 <div className="max-w-4xl mx-auto px-4">
                   {/* Header Title with Search bar */}
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 border-b border-[#1c1917]/80 pb-6">
@@ -379,6 +420,86 @@ export default function App() {
         onClose={() => setIsAuthOpen(false)}
         onAuthSuccess={handleAuthSuccess}
       />
+
+      {/* Pinned Notice Detail Modal */}
+      {selectedPinnedModalNotice && (
+        <div className="fixed inset-0 bg-stone-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn text-left">
+          <div className="bg-[#0f0d0c] border border-[#292524] max-w-lg w-full rounded-2xl p-6 shadow-2xl relative overflow-hidden space-y-4 max-h-[90vh] flex flex-col justify-between">
+            <div className="text-left">
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-[#1c1917] pb-3">
+                <div className="flex items-center gap-2">
+                  <span className="bg-amber-500/10 border border-amber-500/20 text-amber-500 font-mono font-bold text-[9px] px-2 py-0.5 rounded-full text-center">
+                    {selectedPinnedModalNotice.category}
+                  </span>
+                  <span className="text-stone-500 font-mono text-[10px]">
+                    {new Date(selectedPinnedModalNotice.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+                <button 
+                  onClick={() => setSelectedPinnedModalNotice(null)}
+                  className="p-1 rounded-full text-stone-500 hover:text-stone-300 hover:bg-stone-850 cursor-pointer transition"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Body Content */}
+              <div className="space-y-4 pt-3 overflow-y-auto max-h-[50vh] pr-1">
+                <h3 className="font-display font-black text-lg text-[#fafaf9] leading-snug">
+                  {selectedPinnedModalNotice.title}
+                </h3>
+                
+                {selectedPinnedModalNotice.imageUrl && (
+                  <img 
+                    src={selectedPinnedModalNotice.imageUrl} 
+                    alt={selectedPinnedModalNotice.title} 
+                    className="w-full aspect-video object-cover rounded-xl border border-stone-850 bg-stone-950"
+                    referrerPolicy="no-referrer"
+                  />
+                )}
+                
+                <p className="text-stone-300 text-xs sm:text-sm leading-relaxed whitespace-pre-wrap font-sans">
+                  {selectedPinnedModalNotice.content}
+                </p>
+              </div>
+            </div>
+
+            {/* Footer Buttons */}
+            <div className="flex gap-2.5 pt-4 border-t border-[#1c1917]">
+              <button
+                onClick={() => {
+                  const targetNoticeId = selectedPinnedModalNotice.id;
+                  setSelectedPinnedModalNotice(null);
+                  navigateToTab('Home');
+                  setTimeout(() => {
+                    const el = document.getElementById(`notice-card-${targetNoticeId}`);
+                    if (el) {
+                      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      el.classList.add('ring-2', 'ring-amber-500', 'ring-offset-2', 'ring-offset-stone-900');
+                      setTimeout(() => {
+                        el.classList.remove('ring-2', 'ring-amber-500', 'ring-offset-2', 'ring-offset-stone-900');
+                      }, 2000);
+                    } else {
+                      const section = document.getElementById('notices-section');
+                      if (section) section.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }, 300);
+                }}
+                className="flex-grow py-3 bg-[#12100f] border border-[#292524] hover:border-stone-500 hover:text-[#fafaf9] rounded-xl text-stone-400 font-bold text-xs tracking-wider transition duration-150 cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                📜 공지방 목록에서 보기
+              </button>
+              <button
+                onClick={() => setSelectedPinnedModalNotice(null)}
+                className="px-5 py-3 bg-amber-500 hover:bg-amber-600 text-stone-950 font-black rounded-xl text-xs transition duration-150 cursor-pointer"
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

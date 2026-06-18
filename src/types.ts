@@ -59,6 +59,7 @@ export interface Notice {
   category: string;
   imageUrl?: string;
   isPublished: boolean;
+  isPinned?: boolean;
   createdAt: string;
   updatedAt: string;
 }
